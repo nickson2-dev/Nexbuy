@@ -11,11 +11,11 @@ interface ProductGridProps {
   onQuickView: (product: Product) => void;
   onProductClick?: (product: Product) => void;
   // Filter Props
-  priceTier: string;
-  setPriceTier: (tier: string) => void;
-  minRating: number;
-  setMinRating: (rating: number) => void;
-  onReset: () => void;
+  priceTier?: string;
+  setPriceTier?: (tier: string) => void;
+  minRating?: number;
+  setMinRating?: (rating: number) => void;
+  onReset?: () => void;
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({ 
@@ -25,9 +25,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   wishlist, 
   onQuickView, 
   onProductClick,
-  priceTier,
+  priceTier = 'all',
   setPriceTier,
-  minRating,
+  minRating = 0,
   setMinRating,
   onReset
 }) => {
@@ -35,13 +35,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Enhanced Filter Toolbar */}
-      <div className="bg-white/50 backdrop-blur-xl border border-slate-100 rounded-[32px] p-4 lg:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-6">
+      {/* Enhanced Filter Toolbar - Only show if filter props are provided */}
+      {setPriceTier && setMinRating && onReset && (
+        <div className="bg-white/50 backdrop-blur-xl border border-slate-100 rounded-[24px] md:rounded-[32px] p-4 lg:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full xl:w-auto">
           {/* Price Segment Selector */}
-          <div className="space-y-2">
+          <div className="space-y-2 w-full sm:w-auto">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price Segments</p>
-            <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-100">
+            <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-100 overflow-x-auto no-scrollbar">
               {[
                 { id: 'all', label: 'All' },
                 { id: 'under50', label: '< $50' },
@@ -51,7 +52,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 <button
                   key={tier.id}
                   onClick={() => setPriceTier(tier.id)}
-                  className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all ${
+                  className={`px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap ${
                     priceTier === tier.id 
                     ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
                     : 'text-slate-500 hover:text-slate-800'
@@ -64,14 +65,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           </div>
 
           {/* Rating Segment Selector */}
-          <div className="space-y-2">
+          <div className="space-y-2 w-full sm:w-auto">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Min. Star Rating</p>
             <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-100">
               {[0, 4, 4.5].map(rating => (
                 <button
                   key={rating}
                   onClick={() => setMinRating(rating)}
-                  className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center gap-2 transition-all ${
                     minRating === rating 
                     ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
                     : 'text-slate-500 hover:text-slate-800'
@@ -89,24 +90,25 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         </div>
 
         {/* Results Counter */}
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
+        <div className="flex items-center justify-between xl:justify-end gap-4 w-full xl:w-auto pt-4 xl:pt-0 border-t xl:border-t-0 border-slate-100">
+          <div className="text-left xl:text-right">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Visibility</p>
             <p className="text-sm font-black text-slate-900">{products.length} Assets Found</p>
           </div>
           <div className="w-[1px] h-8 bg-slate-200 hidden sm:block"></div>
           <button 
             onClick={onReset}
-            className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors"
+            className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2 rounded-xl xl:bg-transparent xl:p-0"
           >
             Reset Filters
           </button>
         </div>
       </div>
+      )}
 
       {/* Grid Content */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {products.map((product) => (
             <div 
               key={product.id} 

@@ -138,16 +138,16 @@ const Header: React.FC<HeaderProps> = ({
 
           <div 
             onClick={user.isLoggedIn ? onOpenAccount : onOpenLogin}
-            className="flex items-center gap-3 bg-slate-900 text-white pl-4 pr-1.5 py-1.5 rounded-2xl cursor-pointer hover:bg-slate-800 transition-all group relative"
+            className="flex items-center gap-2 lg:gap-3 bg-slate-900 text-white pl-3 lg:pl-4 pr-1.5 py-1.5 rounded-2xl cursor-pointer hover:bg-slate-800 transition-all group relative"
           >
-            <div className="flex flex-col items-end leading-none">
+            <div className="flex flex-col items-end leading-none hidden sm:flex">
               <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest mb-0.5">User</span>
-              <span className="text-[11px] font-black truncate max-w-[80px]">
+              <span className="text-[11px] font-black truncate max-w-[60px] lg:max-w-[100px]">
                 {user.isLoggedIn ? user.name.split(' ')[0] : 'Connect'}
               </span>
             </div>
-            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform overflow-hidden text-white font-black text-sm">
-               {user.isLoggedIn ? user.name.charAt(0) : <UserIcon size={18} />}
+            <div className="w-8 h-8 lg:w-9 lg:h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform overflow-hidden text-white font-black text-xs lg:text-sm">
+               {user.isLoggedIn ? user.name.charAt(0) : <UserIcon size={16} />}
             </div>
           </div>
         </div>

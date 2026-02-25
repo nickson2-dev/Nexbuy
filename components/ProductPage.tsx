@@ -26,50 +26,50 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
         Return to Catalog
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-16">
         {/* Visual Column */}
         <div className="lg:col-span-7 space-y-8">
-          <div className="aspect-square rounded-[48px] overflow-hidden bg-white border border-slate-100 shadow-sm relative group">
+          <div className="aspect-square rounded-[32px] md:rounded-[48px] overflow-hidden bg-white border border-slate-100 shadow-sm relative group">
             <img 
               src={product.image} 
               alt={product.name} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
             />
-            <div className="absolute top-6 left-6 z-10">
-              <span className="bg-slate-900/80 backdrop-blur-md text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-[0.2em] border border-white/10">
+            <div className="absolute top-4 md:top-6 left-4 md:left-6 z-10">
+              <span className="bg-slate-900/80 backdrop-blur-md text-indigo-400 text-[8px] md:text-[10px] font-black px-3 md:px-4 py-1.5 md:py-2 rounded-full uppercase tracking-[0.2em] border border-white/10">
                 Subject: NEX-{product.id.toUpperCase()}
               </span>
             </div>
             
             <button 
               onClick={() => onToggleWishlist(product)}
-              className={`absolute top-6 right-6 z-10 w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+              className={`absolute top-4 md:top-6 right-4 md:right-6 z-10 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
                 isInWishlist ? 'bg-pink-500 text-white' : 'bg-white/80 backdrop-blur-md text-slate-400 hover:text-pink-500'
               }`}
             >
-              <Heart size={24} fill={isInWishlist ? "currentColor" : "none"} />
+              <Heart size={20} md:size={24} fill={isInWishlist ? "currentColor" : "none"} />
             </button>
           </div>
 
           {/* Detailed Narrative */}
-          <div className="bg-white p-10 rounded-[48px] border border-slate-100">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Technical Narrative</h3>
-            <p className="text-xl text-slate-500 leading-relaxed font-medium mb-10">
+          <div className="bg-white p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-slate-100">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 md:mb-6">Technical Narrative</h3>
+            <p className="text-lg md:text-xl text-slate-500 leading-relaxed font-medium mb-8 md:mb-10">
               {product.description}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-4 p-6 bg-slate-50 rounded-3xl">
-                <ShieldCheck className="text-indigo-600 shrink-0" size={24} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+              <div className="flex items-start gap-4 p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-3xl">
+                <ShieldCheck className="text-indigo-600 shrink-0" size={20} md:size={24} />
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Nexbuy Protection</h4>
-                  <p className="text-xs text-slate-400 mt-1">2-Year global warranty included with every unit.</p>
+                  <h4 className="font-bold text-slate-900 text-xs md:text-sm">Nexbuy Protection</h4>
+                  <p className="text-[10px] md:text-xs text-slate-400 mt-1">2-Year global warranty included.</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-6 bg-slate-50 rounded-3xl">
-                <Truck className="text-emerald-600 shrink-0" size={24} />
+              <div className="flex items-start gap-4 p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-3xl">
+                <Truck className="text-emerald-600 shrink-0" size={20} md:size={24} />
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Carbon-Neutral Logistics</h4>
-                  <p className="text-xs text-slate-400 mt-1">Optimized routing for immediate and clean delivery.</p>
+                  <h4 className="font-bold text-slate-900 text-xs md:text-sm">Carbon-Neutral</h4>
+                  <p className="text-[10px] md:text-xs text-slate-400 mt-1">Optimized clean delivery.</p>
                 </div>
               </div>
             </div>
@@ -78,25 +78,25 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
 
         {/* Action Column */}
         <div className="lg:col-span-5 flex flex-col">
-          <div className="sticky top-32 space-y-10">
+          <div className="sticky top-24 md:top-32 space-y-8 md:space-y-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-full">
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-full">
                   {product.category}
                 </span>
-                <div className="flex items-center gap-1 text-yellow-500 text-xs font-black">
+                <div className="flex items-center gap-1 text-yellow-500 text-[10px] md:text-xs font-black">
                   <Star size={14} fill="currentColor" />
-                  {product.rating} (Verified Owners)
+                  {product.rating} (Verified)
                 </div>
               </div>
-              <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none italic uppercase mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none italic uppercase mb-6">
                 {product.name}
               </h1>
               <div className="flex items-baseline gap-4">
-                <span className="text-5xl font-black text-slate-900 tracking-tighter">
+                <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
                   ${product.price.toLocaleString()}
                 </span>
-                <span className="text-emerald-500 font-black text-xs uppercase tracking-widest">In Stock</span>
+                <span className="text-emerald-500 font-black text-[10px] md:text-xs uppercase tracking-widest">In Stock</span>
               </div>
             </div>
 

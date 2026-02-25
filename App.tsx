@@ -183,16 +183,16 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <main className="flex-grow pb-20 md:pb-0">
+          <main className="flex-grow pb-20 md:pb-0 w-full">
             {currentView === 'home' && (
               <>
                 <Hero onShopNow={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} onLaunchLabs={() => handleNavigation('experience')} isLumiAscend={user.isLumiAscend} onOpenMembership={() => setIsMembershipOpen(true)} />
-                <div id="products" className="max-w-[1600px] mx-auto px-6 py-12 lg:py-20">
+                <div id="products" className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8">
-                    <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">The Collection</h2>
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">The Collection</h2>
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 w-full lg:w-auto">
                       {categories.map(cat => (
-                        <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-slate-900 text-white shadow-xl' : 'bg-white text-slate-400 border border-slate-100'}`}>{cat}</button>
+                        <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? 'bg-slate-900 text-white shadow-xl' : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-300'}`}>{cat}</button>
                       ))}
                     </div>
                   </div>

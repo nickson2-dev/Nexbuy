@@ -59,28 +59,28 @@ const Hero: React.FC<HeroProps> = ({ onShopNow, onLaunchLabs, isLumiAscend, onOp
            </div>
         </div>
         
-        <h1 className="text-7xl md:text-[11rem] font-black mb-10 tracking-tighter leading-[0.85] animate-slide-up italic uppercase">
+        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] xl:text-[12rem] font-black mb-6 md:mb-10 tracking-tighter leading-[0.85] animate-slide-up italic uppercase">
           FUTURE <br /> 
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-white to-purple-400 drop-shadow-2xl">
             CURATED.
           </span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto mb-20 animate-fade-in leading-relaxed opacity-80">
+        <p className="text-lg md:text-xl lg:text-2xl text-slate-300 font-light max-w-3xl mx-auto mb-12 md:mb-20 animate-fade-in leading-relaxed opacity-80 px-4">
           The global destination for high-performance hardware and avant-garde lifestyle tech. Welcome to the Nexbuy interface.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-10 px-4">
           <button 
             onClick={onShopNow}
-            className="group px-14 py-7 bg-white text-black rounded-[24px] font-black text-xl hover:bg-slate-100 transition-all shadow-[0_30px_60px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-3"
+            className="w-full sm:w-auto group px-8 md:px-14 py-5 md:py-7 bg-white text-black rounded-[20px] md:rounded-[24px] font-black text-lg md:text-xl hover:bg-slate-100 transition-all shadow-[0_30px_60px_rgba(255,255,255,0.2)] active:scale-95 flex items-center justify-center gap-3"
           >
             Explore Stack
             <ChevronRight size={24} className="group-hover:translate-x-2 transition-transform" />
           </button>
           <button 
             onClick={onLaunchLabs}
-            className="group px-14 py-7 bg-white/5 border border-white/20 rounded-[24px] font-black text-xl hover:bg-white/10 transition-all backdrop-blur-2xl flex items-center gap-4 border-dashed"
+            className="w-full sm:w-auto group px-8 md:px-14 py-5 md:py-7 bg-white/5 border border-white/20 rounded-[20px] md:rounded-[24px] font-black text-lg md:text-xl hover:bg-white/10 transition-all backdrop-blur-2xl flex items-center justify-center gap-4 border-dashed"
           >
             <FlaskConical size={28} className="text-indigo-400 group-hover:rotate-12 transition-transform" />
             Nexbuy Labs
