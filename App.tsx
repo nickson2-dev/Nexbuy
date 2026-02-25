@@ -144,8 +144,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafafa]">
-      <div className="flex flex-grow">
+    <div className="min-h-screen flex flex-col bg-[#fafafa] overflow-x-hidden">
+      <div className="flex flex-grow w-full overflow-x-hidden">
         <Sidebar 
           currentView={currentView} 
           onNavigate={handleNavigation} 
@@ -175,8 +175,8 @@ const App: React.FC = () => {
             isCartPulsing={cartPulse} 
           />
           
-          <div className="bg-slate-900 text-white py-2 overflow-hidden border-b border-white/5 shrink-0">
-            <div className="flex animate-marquee gap-16 text-[10px] font-black uppercase tracking-widest">
+          <div className="bg-slate-900 text-white py-2 overflow-hidden border-b border-white/5 shrink-0 w-full">
+            <div className="flex animate-marquee gap-16 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
               <span className="flex items-center gap-2"><Zap size={12} className="text-indigo-400" /> Rewards Active</span>
               <span>🔒 Secure Checkout</span>
               <span>🌍 Premium Tech Curation</span>

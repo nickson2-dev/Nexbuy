@@ -40,7 +40,7 @@ const MobileNavbar: React.FC<MobileNavbarProps> = ({
   );
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex items-center justify-around px-2 z-[160] shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+    <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex items-center justify-around px-2 z-[160] shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
       <NavItem 
         icon={Home} 
         view="home" 
