@@ -22,6 +22,17 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface ShippingAddress {
+  fullName: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  phone: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -33,8 +44,17 @@ export interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   timestamp: string;
   supplierRef?: string;
-  paymentMethod?: 'stripe' | 'points';
-  paymentStatus?: 'paid' | 'unpaid';
+  paymentMethod?: 'stripe' | 'points' | 'cod';
+  paymentStatus?: 'paid' | 'unpaid' | 'pending';
+  shippingAddress?: ShippingAddress;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  shippingCost?: number;
+}
+
+export interface ShippingRate {
+  district: string;
+  cost: number;
 }
 
 export interface User {

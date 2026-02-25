@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { ChevronLeft, ShoppingCart, Heart, Zap, ShieldCheck, Truck, Star, Info, Share2 } from 'lucide-react';
 
@@ -14,6 +14,24 @@ interface ProductPageProps {
 const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggleWishlist, wishlist, onBack }) => {
   const isInWishlist = wishlist.some(p => p.id === product.id);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '');
+
+  useEffect(() => {
+    const prevTitle = document.title;
+    const prevDesc = document.querySelector('meta[name="description"]')?.getAttribute('content');
+    
+    document.title = `${product.name} | Nexbuy Premium Tech`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', product.description.slice(0, 160));
+    }
+
+    return () => {
+      document.title = prevTitle;
+      if (metaDesc && prevDesc) {
+        metaDesc.setAttribute('content', prevDesc);
+      }
+    };
+  }, [product.name, product.description]);
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10 animate-fade-in">

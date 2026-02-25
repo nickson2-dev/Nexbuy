@@ -313,3 +313,40 @@ export const calculateAnalytics = async (): Promise<AnalyticsData> => {
     return { totalRevenue: 0, totalProfit: 0, activeOrders: 0, growthRate: 0 };
   }
 };
+
+// Shipping Rates Management
+export const fetchShippingRates = async (): Promise<Record<string, number>> => {
+  if (!db) return {};
+  try {
+    const ratesRef = ref(db, 'shipping_rates');
+    const snapshot = await get(ratesRef);
+    return snapshot.exists() ? snapshot.val() : {};
+  } catch (e) {
+    console.error("fetchShippingRates failed:", e);
+    return {};
+  }
+};
+
+export const updateShippingRate = async (district: string, cost: number) => {
+  if (!db) return false;
+  try {
+    const rateRef = ref(db, `shipping_rates/${district}`);
+    await set(rateRef, cost);
+    return true;
+  } catch (e) {
+    console.error("updateShippingRate failed:", e);
+    return false;
+  }
+};
+
+export const deleteShippingRate = async (district: string) => {
+  if (!db) return false;
+  try {
+    const rateRef = ref(db, `shipping_rates/${district}`);
+    await remove(rateRef);
+    return true;
+  } catch (e) {
+    console.error("deleteShippingRate failed:", e);
+    return false;
+  }
+};

@@ -135,6 +135,36 @@ const App: React.FC = () => {
     handleNavigation('home');
   };
 
+  useEffect(() => {
+    const viewTitles: Record<string, string> = {
+      home: 'Nexbuy | The Future of Tech Curation',
+      wishlist: 'My Wishlist | Nexbuy',
+      account: 'My Account | Nexbuy',
+      seller: 'Seller Portal | Nexbuy Hub',
+      admin: 'Nexus Command | Admin Control',
+      experience: 'Nexbuy Labs | Future Tech Experience',
+      settings: 'Settings | Nexbuy'
+    };
+    
+    const viewDescriptions: Record<string, string> = {
+      home: 'Discover Nexbuy, the premier destination for curated high-tech gadgets and premium gear.',
+      wishlist: 'View and manage your saved premium tech gadgets at Nexbuy.',
+      account: 'Manage your Nexbuy profile, points, and citizen status.',
+      seller: 'Access the Nexbuy Seller Portal to manage your premium tech inventory.',
+      admin: 'Nexus Command Center for global ecosystem governance.',
+      experience: 'Explore the future of tech in the Nexbuy Labs experience center.',
+      settings: 'Configure your Nexbuy interface and account preferences.'
+    };
+    
+    if (currentView !== 'product') {
+      document.title = viewTitles[currentView] || 'Nexbuy | Premium Tech';
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', viewDescriptions[currentView] || 'Premium tech curation and decentralized retail ecosystem.');
+      }
+    }
+  }, [currentView]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -154,7 +184,7 @@ const App: React.FC = () => {
           onLogout={() => { signOut(); handleNavigation('home'); }} 
           onOpenLogin={() => setIsLoginOpen(true)} 
         />
-        <div className="flex-grow flex flex-col min-w-0">
+        <div className="flex-grow flex flex-col min-w-0 pt-16 lg:pt-20">
           <Header 
             currentView={currentView}
             cartCount={cart.reduce((s, i) => s + i.quantity, 0)} 
@@ -175,7 +205,7 @@ const App: React.FC = () => {
             isCartPulsing={cartPulse} 
           />
           
-          <div className="bg-slate-900 text-white py-2 overflow-hidden border-b border-white/5 shrink-0 w-full">
+          <div className="bg-slate-900 text-white py-2 overflow-hidden border-b border-white/5 shrink-0 w-full sticky top-16 lg:top-20 z-[140]">
             <div className="flex animate-marquee gap-16 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
               <span className="flex items-center gap-2"><Zap size={12} className="text-indigo-400" /> Rewards Active</span>
               <span>🔒 Secure Checkout</span>
@@ -215,13 +245,119 @@ const App: React.FC = () => {
       <MobileNavbar currentView={currentView} onNavigate={handleNavigation} onOpenCart={() => setIsCartOpen(true)} onOpenSearch={() => { handleNavigation('home'); setIsSearchOpen(true); }} cartCount={cart.reduce((s, i) => s + i.quantity, 0)} user={user} />
       
       {isSearchOpen && (
-        <div className="fixed inset-0 z-[250] bg-white animate-fade-in p-6">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="flex-grow flex items-center bg-slate-100 rounded-2xl px-4 py-3">
-              <Search size={20} className="text-slate-400 mr-3" />
-              <input autoFocus type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="bg-transparent border-none outline-none w-full text-slate-900 font-bold" />
+        <div className="fixed inset-0 z-[250] bg-white animate-fade-in flex flex-col">
+          <div className="p-6 border-b border-slate-100">
+            <div className="flex items-center gap-4">
+              <div className="flex-grow flex items-center bg-slate-100 rounded-2xl px-4 py-3">
+                <Search size={20} className="text-slate-400 mr-3" />
+                <input 
+                  autoFocus 
+                  type="text" 
+                  value={searchQuery} 
+                  onChange={(e) => setSearchQuery(e.target.value)} 
+                  placeholder="Search Nexbuy..." 
+                  className="bg-transparent border-none outline-none w-full text-slate-900 font-bold" 
+                />
+              </div>
+              <button onClick={() => setIsSearchOpen(false)} className="text-xs font-black uppercase tracking-widest text-slate-400">Cancel</button>
             </div>
-            <button onClick={() => setIsSearchOpen(false)} className="font-black">CLOSE</button>
+          </div>
+
+          <div className="flex-grow overflow-y-auto p-6">
+            {searchQuery.trim().length < 2 ? (
+              <div className="space-y-10">
+                <div>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Zap size={14} className="text-indigo-500" /> Trending Searches
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.filter(c => c !== 'All').map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setSearchQuery(cat);
+                          setIsSearchOpen(false);
+                        }}
+                        className="px-5 py-3 bg-slate-50 text-slate-600 rounded-2xl text-xs font-bold transition-all active:scale-95"
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Recommended for you</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    {PRODUCTS.slice(0, 3).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setCurrentView('product');
+                          setIsSearchOpen(false);
+                        }}
+                        className="flex items-center gap-4 p-4 bg-slate-50 rounded-[32px] text-left active:scale-[0.98] transition-all"
+                      >
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white shrink-0">
+                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900 leading-tight">{p.name}</p>
+                          <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1">${p.price}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {PRODUCTS.filter(p => 
+                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  p.category.toLowerCase().includes(searchQuery.toLowerCase())
+                ).length > 0 ? (
+                  <div className="grid grid-cols-1 gap-4">
+                    {PRODUCTS.filter(p => 
+                      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setCurrentView('product');
+                          setIsSearchOpen(false);
+                        }}
+                        className="flex items-center gap-4 p-4 bg-slate-50 rounded-[32px] text-left active:scale-[0.98] transition-all"
+                      >
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white shrink-0">
+                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900 leading-tight">{p.name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{p.category}</p>
+                        </div>
+                        <div className="ml-auto text-sm font-black text-indigo-600">${p.price}</div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center">
+                    <p className="text-slate-400 font-medium italic">No results found for "{searchQuery}"</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="p-6 border-t border-slate-100">
+            <button 
+              onClick={() => setIsSearchOpen(false)}
+              className="w-full bg-slate-900 text-white h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest"
+            >
+              View All Results
+            </button>
           </div>
         </div>
       )}

@@ -176,18 +176,105 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
                 </div>
               ) : (
                 orders.map(order => (
-                  <div key={order.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                    <div className="flex justify-between items-center mb-8">
-                      <div><p className="text-sm font-black">Order #{order.id.slice(-6).toUpperCase()}</p><p className="text-[10px] text-slate-400">{new Date(order.timestamp).toLocaleDateString()}</p></div>
-                      <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-indigo-50 text-indigo-600">{order.status}</span>
+                  <div key={order.id} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                      <div>
+                        <p className="text-sm font-black">Order #{order.id.slice(-6).toUpperCase()}</p>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{new Date(order.timestamp).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${
+                          order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600' : 
+                          order.status === 'shipped' ? 'bg-blue-50 text-blue-600' : 
+                          'bg-indigo-50 text-indigo-600'
+                        }`}>
+                          {order.status}
+                        </span>
+                        {order.paymentMethod === 'cod' && (
+                          <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-amber-50 text-amber-600">COD</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      {order.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span>{item.name} x{item.quantity}</span>
-                          <span className="font-black">${(item.price * item.quantity).toLocaleString()}</span>
+
+                    {/* Tracking Progress */}
+                    <div className="mb-10 px-4">
+                      <div className="flex justify-between mb-2">
+                        {['pending', 'processing', 'shipped', 'delivered'].map((s, i) => {
+                          const statuses = ['pending', 'processing', 'shipped', 'delivered'];
+                          const currentIndex = statuses.indexOf(order.status);
+                          const stepIndex = i;
+                          const isActive = stepIndex <= currentIndex;
+                          return (
+                            <div key={s} className="flex flex-col items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full transition-all duration-500 ${isActive ? 'bg-indigo-600 scale-125 shadow-[0_0_10px_rgba(79,70,229,0.5)]' : 'bg-slate-200'}`}></div>
+                              <span className={`text-[8px] font-black uppercase tracking-tighter ${isActive ? 'text-indigo-600' : 'text-slate-300'}`}>{s}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="h-1 bg-slate-100 rounded-full relative">
+                        <div 
+                          className="h-full bg-indigo-600 rounded-full transition-all duration-1000" 
+                          style={{ width: `${(Math.max(0, ['pending', 'processing', 'shipped', 'delivered'].indexOf(order.status)) / 3) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Acquired Assets</h4>
+                        <div className="space-y-3">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
+                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-grow">
+                                <p className="text-xs font-bold text-slate-900">{item.name}</p>
+                                <p className="text-[10px] text-slate-400">Qty: {item.quantity}</p>
+                              </div>
+                              <span className="text-xs font-black text-indigo-600">${(item.price * item.quantity).toLocaleString()}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Logistics Data</h4>
+                        <div className="bg-slate-50 p-5 rounded-[32px] space-y-3 border border-slate-100">
+                          {order.trackingNumber && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">Tracking</span>
+                              <span className="text-[10px] font-black text-indigo-600 font-mono">{order.trackingNumber}</span>
+                            </div>
+                          )}
+                          {order.estimatedDelivery && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">Est. Arrival</span>
+                              <span className="text-[10px] font-black text-slate-900">{order.estimatedDelivery}</span>
+                            </div>
+                          )}
+                          {order.shippingAddress && (
+                            <div className="pt-2 border-t border-slate-200 mt-2">
+                              <div className="flex items-start gap-2">
+                                <MapPin size={12} className="text-indigo-500 mt-0.5" />
+                                <div className="space-y-0.5">
+                                  <p className="text-[10px] font-black text-slate-900">{order.shippingAddress.fullName}</p>
+                                  <p className="text-[10px] text-slate-500 leading-tight">{order.shippingAddress.address}, {order.shippingAddress.city}</p>
+                                  {order.shippingAddress.lat && (
+                                    <p className="text-[8px] font-black text-indigo-400 uppercase mt-1">Pinned Location Active</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Value</span>
+                      <span className="text-xl font-black text-slate-900">${order.total.toLocaleString()}</span>
                     </div>
                   </div>
                 ))

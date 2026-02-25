@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Order, AnalyticsData, User } from '../types';
-import { fetchOrders, updateOrderStatus, calculateAnalytics, fetchPendingSellers, approveSeller, rejectSeller } from '../services/firebase';
+import { 
+  fetchOrders, updateOrderStatus, calculateAnalytics, 
+  fetchPendingSellers, approveSeller, rejectSeller,
+  fetchShippingRates, updateShippingRate, deleteShippingRate
+} from '../services/firebase';
 import { 
   X, Edit3, DollarSign, TrendingUp, ShoppingBag, 
   BarChart3, ArrowUpRight, LayoutDashboard, Package, 
-  CheckCircle2, XCircle, UserCheck, ShieldCheck, Activity, Globe, Users, Zap, Clock, ShieldAlert
+  CheckCircle2, XCircle, UserCheck, ShieldCheck, Activity, Globe, Users, Zap, Clock, ShieldAlert, Truck, Plus, Trash2, MapPin
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -15,9 +19,12 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'applications'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'applications' | 'logistics'>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingSellers, setPendingSellers] = useState<User[]>([]);
+  const [shippingRates, setShippingRates] = useState<Record<string, number>>({});
+  const [newDistrict, setNewDistrict] = useState('');
+  const [newCost, setNewCost] = useState('');
   const [liveTraffic, setLiveTraffic] = useState(420);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,14 +39,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
     setLoading(true);
     setError(null);
     try {
-      const [fetchedOrders, fetchedStats, fetchedSellers] = await Promise.all([
+      const [fetchedOrders, fetchedStats, fetchedSellers, fetchedRates] = await Promise.all([
         fetchOrders(),
         calculateAnalytics(),
-        fetchPendingSellers()
+        fetchPendingSellers(),
+        fetchShippingRates()
       ]);
       setOrders(fetchedOrders);
       setAnalytics(fetchedStats);
       setPendingSellers(fetchedSellers);
+      setShippingRates(fetchedRates);
     } catch (e: any) {
       console.error("Admin data load error:", e);
       setError("Unable to sync with Nexbuy Central. Please verify database security permissions.");
@@ -74,6 +83,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
     }
   };
 
+  const handleAddRate = async () => {
+    if (!newDistrict || !newCost) return;
+    const costNum = parseFloat(newCost);
+    if (isNaN(costNum)) return;
+
+    if (await updateShippingRate(newDistrict, costNum)) {
+      setShippingRates(prev => ({ ...prev, [newDistrict]: costNum }));
+      setNewDistrict('');
+      setNewCost('');
+    }
+  };
+
+  const handleDeleteRate = async (district: string) => {
+    if (await deleteShippingRate(district)) {
+      const updated = { ...shippingRates };
+      delete updated[district];
+      setShippingRates(updated);
+    }
+  };
+
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10 animate-fade-in">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-12 gap-6">
@@ -85,24 +114,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
           <p className="text-slate-500 font-medium ml-16 mt-[-8px]">Global Ecosystem Intelligence & Governance</p>
         </div>
         
-        <div className="flex bg-slate-100 p-1.5 rounded-[24px] border border-slate-200 shadow-inner">
-          {(['overview', 'products', 'orders', 'applications'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all relative ${
-                activeTab === tab ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              {tab === 'applications' && pendingSellers.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-indigo-600 text-white text-[9px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
-                  {pendingSellers.length}
-                </span>
-              )}
-              {tab}
-            </button>
-          ))}
-          <button onClick={onClose} className="p-3 ml-2 text-slate-400 hover:text-red-500 transition-colors"><X size={20} /></button>
+        <div className="w-full lg:w-auto overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex bg-slate-100 p-1.5 rounded-[24px] border border-slate-200 shadow-inner min-w-max lg:min-w-0">
+            {(['overview', 'products', 'orders', 'applications', 'logistics'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${
+                  activeTab === tab ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                {tab === 'applications' && pendingSellers.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-indigo-600 text-white text-[9px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
+                    {pendingSellers.length}
+                  </span>
+                )}
+                {tab}
+              </button>
+            ))}
+            <button onClick={onClose} className="p-3 ml-2 text-slate-400 hover:text-red-500 transition-colors shrink-0"><X size={20} /></button>
+          </div>
         </div>
       </div>
 
@@ -262,6 +293,89 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
             </div>
           )}
 
+          {activeTab === 'logistics' && (
+            <div className="space-y-10 animate-slide-up">
+              <div className="flex justify-between items-center">
+                 <h3 className="text-2xl font-black text-slate-900 uppercase italic">Logistics Governance</h3>
+                 <p className="text-slate-500 text-sm font-medium">Configure district-based shipping costs for the global network.</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-1 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm h-fit">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Plus size={14} className="text-indigo-600" /> Add New District
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">District Name</label>
+                      <input 
+                        type="text" 
+                        value={newDistrict}
+                        onChange={(e) => setNewDistrict(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm font-bold"
+                        placeholder="e.g. Kampala"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Shipping Cost ($)</label>
+                      <input 
+                        type="number" 
+                        value={newCost}
+                        onChange={(e) => setNewCost(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm font-bold"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleAddRate}
+                      className="w-full bg-slate-900 text-white h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-indigo-600 transition-all shadow-lg"
+                    >
+                      Deploy Rate
+                    </button>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Shipping Matrix</h4>
+                    <Truck size={16} className="text-slate-300" />
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {Object.entries(shippingRates).length === 0 ? (
+                      <div className="p-20 text-center text-slate-400 italic text-sm">No shipping rates defined.</div>
+                    ) : (
+                      Object.entries(shippingRates).map(([district, cost]) => (
+                        <div key={district} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-all group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                              <MapPin size={18} />
+                            </div>
+                            <div>
+                              <p className="font-black text-slate-900 uppercase italic">{district}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">District Zone</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-8">
+                            <div className="text-right">
+                              <p className="text-lg font-black text-indigo-600 tracking-tighter tabular-nums">${cost.toLocaleString()}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Delivery Fee</p>
+                            </div>
+                            <button 
+                              onClick={() => handleDeleteRate(district)}
+                              className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'products' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 animate-slide-up">
               <div className="lg:col-span-2 space-y-6">
@@ -359,7 +473,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                         <tr key={order.id} className="hover:bg-slate-50 transition-all group">
                           <td className="px-10 py-8">
                             <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">
-                               NEX-{order.id.toString().slice(-8).toUpperCase()}
+                                NEX-{order.id.toString().slice(-8).toUpperCase()}
                             </span>
                           </td>
                           <td className="px-10 py-8">

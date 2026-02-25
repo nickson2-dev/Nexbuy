@@ -74,10 +74,10 @@ const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClose, onUp
               onClick={onUpgrade}
               className="w-full h-20 bg-white text-slate-900 rounded-[32px] font-black text-xl hover:bg-yellow-400 transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-4 group"
             >
-              Join for $19.99 / Month
+              Pay to Join — $19.99 / Month
               <ChevronRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </button>
-            <p className="text-center text-[10px] text-slate-500 font-black uppercase tracking-widest mt-6">Cancel at any time through your interface</p>
+            <p className="text-center text-[10px] text-slate-500 font-black uppercase tracking-widest mt-6">Secure Transaction • Instant Activation • Cancel Anytime</p>
           </div>
         </div>
 
