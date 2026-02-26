@@ -5,6 +5,7 @@ import {
   fetchPendingSellers, approveSeller, rejectSeller,
   fetchShippingRates, updateShippingRate, deleteShippingRate
 } from '../services/firebase';
+import SectionLoader from './SectionLoader';
 import { 
   X, Edit3, DollarSign, TrendingUp, ShoppingBag, 
   BarChart3, ArrowUpRight, LayoutDashboard, Package, 
@@ -146,10 +147,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
       )}
 
       {loading ? (
-        <div className="py-40 flex flex-col items-center justify-center gap-6">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Synchronizing Nexus Data...</p>
-        </div>
+        <SectionLoader message="Synchronizing Nexus Data..." />
       ) : (
         <>
           {activeTab === 'overview' && (
@@ -256,11 +254,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                     <div key={u.id} className="group bg-white p-10 rounded-[56px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
                       <div className="flex items-center gap-6 mb-10">
                         <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[32px] flex items-center justify-center font-black text-3xl group-hover:scale-110 transition-transform">
-                          {u.name.charAt(0)}
+                          {(u.name || 'U').charAt(0)}
                         </div>
                         <div>
                           <h4 className="text-2xl font-black text-slate-900 italic uppercase">{u.storeName}</h4>
-                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-1">Founder: {u.name}</p>
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-1">Founder: {u.name || 'Unknown'}</p>
                         </div>
                       </div>
                       

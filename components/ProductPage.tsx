@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
-import { ChevronLeft, ShoppingCart, Heart, Zap, ShieldCheck, Truck, Star, Info, Share2 } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Heart, Zap, ShieldCheck, Truck, Star, Info, Share2, Store } from 'lucide-react';
 
 interface ProductPageProps {
   product: Product;
@@ -107,9 +107,19 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
                   {product.rating} (Verified)
                 </div>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none italic uppercase mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none italic uppercase mb-2">
                 {product.name}
               </h1>
+              
+              {product.sellerName && (
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+                    <Store size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{product.sellerName}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Merchant</span>
+                </div>
+              )}
               <div className="flex items-baseline gap-4">
                 <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
                   ${product.price.toLocaleString()}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, Product, Order } from '../types';
 import { applyAsSeller, fetchSellerProducts, createSellerProduct, fetchOrders, updateSellerProduct, deleteSellerProduct } from '../services/firebase';
+import SectionLoader from './SectionLoader';
+import ButtonLoader from './ButtonLoader';
 import { 
   Store, Package, TrendingUp, DollarSign, Plus, X, 
   ChevronRight, BarChart3, CheckCircle2,
@@ -101,7 +103,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
     e.preventDefault();
     if (!newProduct.name || newProduct.price <= 0) return;
     setLoading(true);
-    const added = await createSellerProduct({ ...newProduct, sellerId: user.id });
+    const added = await createSellerProduct({ ...newProduct, sellerId: user.id, sellerName: user.storeName });
     if (added) {
       const updatedProducts = await fetchSellerProducts(user.id);
       setProducts(updatedProducts);
@@ -158,7 +160,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                <textarea placeholder="Describe your catalog and vision..." value={appStoreDesc} onChange={e => setAppStoreDesc(e.target.value)} className="w-full bg-slate-50 p-6 rounded-2xl outline-none h-40 focus:ring-2 focus:ring-indigo-500 transition-all font-medium" />
             </div>
             <button type="submit" disabled={isApplying} className="w-full bg-slate-900 text-white h-20 rounded-[32px] font-black uppercase text-lg shadow-2xl hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-3">
-               {isApplying ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : 'Initialize Merchant Request'}
+               {isApplying ? <ButtonLoader /> : 'Initialize Merchant Request'}
             </button>
             <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-black uppercase tracking-widest">
                <ShieldCheck size={14} className="text-emerald-500" /> Authorized Nexbuy Logistics Hub
@@ -197,10 +199,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
       )}
 
       {loading ? (
-        <div className="py-40 flex flex-col items-center justify-center gap-6">
-          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Loading Merchant Data...</p>
-        </div>
+        <SectionLoader message="Loading Merchant Data..." />
       ) : (
         <>
           {activeTab === 'dashboard' && (
@@ -241,34 +240,116 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                 </div>
               </div>
 
-              <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-                 <div className="flex justify-between items-center mb-10">
-                   <h3 className="text-xl font-black uppercase italic flex items-center gap-3">
-                     <BarChart3 size={20} className="text-emerald-600" />
-                     Sales Velocity (Daily)
-                   </h3>
-                   <div className="flex gap-2">
-                      <div className="px-3 py-1 bg-slate-50 text-slate-400 text-[9px] font-black rounded-lg">LAST 12 DAYS</div>
-                   </div>
-                 </div>
-                 <div className="flex items-end justify-between h-48 gap-3">
-                    {metrics.trend.map((h, i) => (
-                      <div key={i} className="flex-grow group relative">
-                        <div 
-                          className="w-full bg-slate-100 rounded-t-xl group-hover:bg-emerald-500 transition-all duration-500 cursor-help" 
-                          style={{ height: `${h}%` }}
-                        >
-                           <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                              ${h*10}
-                           </div>
-                        </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 space-y-10">
+                  <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-10">
+                      <h3 className="text-xl font-black uppercase italic flex items-center gap-3">
+                        <BarChart3 size={20} className="text-emerald-600" />
+                        Sales Velocity (Daily)
+                      </h3>
+                      <div className="flex gap-2">
+                        <div className="px-3 py-1 bg-slate-50 text-slate-400 text-[9px] font-black rounded-lg">LAST 12 DAYS</div>
                       </div>
-                    ))}
-                 </div>
-                 <div className="flex justify-between mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                    <span>Phase Start</span>
-                    <span>Current Realtime</span>
-                 </div>
+                    </div>
+                    <div className="flex items-end justify-between h-48 gap-3">
+                      {metrics.trend.map((h, i) => (
+                        <div key={i} className="flex-grow group relative">
+                          <div 
+                            className="w-full bg-slate-100 rounded-t-xl group-hover:bg-emerald-500 transition-all duration-500 cursor-help" 
+                            style={{ height: `${h}%` }}
+                          >
+                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                ${h*10}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                      <span>Phase Start</span>
+                      <span>Current Realtime</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-8">
+                      <h3 className="text-xl font-black uppercase italic flex items-center gap-3">
+                        <List size={20} className="text-indigo-600" />
+                        Recent Merchant Orders
+                      </h3>
+                      <button onClick={() => setActiveTab('orders')} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">View All</button>
+                    </div>
+                    <div className="space-y-4">
+                      {orders.slice(0, 5).map((order) => (
+                        <div key={order.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm font-black text-xs italic">
+                              {order.id.slice(-4)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-slate-900">{order.customerName}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{new Date(order.timestamp).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-indigo-600">${order.items.filter(i => i.sellerId === user.id).reduce((s, i) => s + (i.price * i.quantity), 0).toLocaleString()}</p>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
+                              order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {orders.length === 0 && (
+                        <div className="py-10 text-center text-slate-400">
+                          <p className="text-sm font-bold uppercase tracking-widest">No orders recorded in current cycle.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-10">
+                  <div className="bg-slate-900 p-10 rounded-[48px] text-white space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center">
+                        <Activity size={20} />
+                      </div>
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Merchant Health</h4>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-3xl font-black italic tracking-tighter">Verified Alpha</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Ecosystem Status: Synchronized</p>
+                    </div>
+                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 w-[92%]" />
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                      Your merchant account is performing in the top 8% of the Nexbuy ecosystem.
+                    </p>
+                  </div>
+
+                  <div className="bg-indigo-600 p-10 rounded-[48px] text-white space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white/20 text-white rounded-2xl flex items-center justify-center">
+                        <Target size={20} />
+                      </div>
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Growth Target</h4>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-3xl font-black italic tracking-tighter">Next Tier: Elite</p>
+                      <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Progress: 750 / 1000 XP</p>
+                    </div>
+                    <div className="h-2 bg-indigo-500 rounded-full overflow-hidden">
+                      <div className="h-full bg-white w-[75%]" />
+                    </div>
+                    <button className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-50 transition-all">
+                      View Rewards
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -537,7 +618,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                   disabled={loading}
                   className="flex-grow bg-slate-900 text-white h-20 rounded-[32px] font-black text-xl hover:bg-emerald-600 transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-4"
                 >
-                  {loading ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+                  {loading ? <ButtonLoader /> : (
                     <>
                       <Zap size={24} />
                       {editingProduct ? 'Commit Matrix Update' : 'Initialize Asset Ingestion'}

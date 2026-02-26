@@ -68,10 +68,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
           <div className="bg-white/5 rounded-2xl p-3 lg:p-4 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => onNavigate('account')}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 ${user.isLumiAscend ? 'bg-indigo-600' : 'bg-slate-700'} text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0`}>
-                {user.name.charAt(0)}
+                {(user.name || 'U').charAt(0)}
               </div>
               <div className="hidden lg:block overflow-hidden">
-                <p className="text-xs font-black text-white truncate">{user.name}</p>
+                <p className="text-xs font-black text-white truncate">{user.name || 'User'}</p>
                 <p className="text-[9px] text-indigo-400 font-bold uppercase tracking-widest mt-0.5">
                   {user.isLumiAscend ? 'Ascended' : 'Citizen'}
                 </p>

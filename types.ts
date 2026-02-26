@@ -12,6 +12,8 @@ export interface Product {
   colors?: string[];
   stock: number;
   sellerId?: string;
+  sellerName?: string;
+  sellerBadge?: string;
   videoUrl?: string; // For immersive experience
   xpGain?: number; // How much XP user gets for buying
   specs?: Record<string, string>;
@@ -69,6 +71,7 @@ export interface User {
   sellerStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   storeName?: string;
   storeDescription?: string;
+  sellerBadge?: string;
   isLumiAscend?: boolean; // Paid membership tier
 }
 

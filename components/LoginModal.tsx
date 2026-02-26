@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User as UserIcon, ShieldCheck, AlertCircle } from 'lucide-react';
 import { signIn, signUp } from '../services/firebase';
+import ButtonLoader from './ButtonLoader';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -117,7 +118,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               className={`w-full bg-slate-900 text-white h-16 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3 mt-4 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {loading ? (
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <ButtonLoader />
               ) : (
                 isRegister ? 'Create Firebase Account' : 'Sign In'
               )}

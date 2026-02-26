@@ -18,8 +18,9 @@ import ExperienceCenter from './components/ExperienceCenter';
 import Sidebar from './components/Sidebar';
 import MobileNavbar from './components/MobileNavbar';
 import CartToast from './components/CartToast';
+import LoadingScreen from './components/LoadingScreen';
 import { Product, CartItem, User } from './types';
-import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile } from './services/firebase';
+import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllSellerProducts } from './services/firebase';
 import { PRODUCTS } from './constants';
 import { Zap, Search } from 'lucide-react';
 
@@ -39,6 +40,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [cartPulse, setCartPulse] = useState(false);
   const [addedToCartToast, setAddedToCartToast] = useState({ name: '', show: false });
+  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const [user, setUser] = useState<User>({
     id: '', email: '', name: 'Guest', points: 0, level: 1, streak: 0, isLoggedIn: false, role: 'customer', isLumiAscend: false
   });
@@ -47,6 +49,12 @@ const App: React.FC = () => {
   const isAdmin = useMemo(() => user.isLoggedIn && (user.email?.toLowerCase() === 'ematannick@gmail.com' || user.role === 'admin'), [user]);
 
   useEffect(() => {
+    const loadSellerProducts = async () => {
+      const sp = await fetchAllSellerProducts();
+      setSellerProducts(sp);
+    };
+    loadSellerProducts();
+
     const unsubscribeAuth = onAuthStateChanged((profile) => {
       if (profile) {
         setUser(profile);
@@ -69,9 +77,11 @@ const App: React.FC = () => {
     }
   };
 
+  const allProducts = useMemo(() => [...PRODUCTS, ...sellerProducts], [sellerProducts]);
+
   const filteredProducts = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    return PRODUCTS.filter(p => {
+    return allProducts.filter(p => {
       if (p.isExclusive && !user.isLumiAscend && !isAdmin) return false;
       const matchesSearch = !query || p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
       const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
@@ -166,11 +176,7 @@ const App: React.FC = () => {
   }, [currentView]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

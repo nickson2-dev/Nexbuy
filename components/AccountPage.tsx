@@ -62,12 +62,12 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className={`w-24 md:w-32 h-24 md:h-32 ${user.isLumiAscend ? 'bg-gradient-to-tr from-yellow-400 to-amber-500 text-slate-900' : 'bg-indigo-600 text-white'} rounded-[40px] flex items-center justify-center font-black text-4xl italic shadow-2xl group-hover:scale-105 transition-transform`}>
-              {user.name.charAt(0)}
+              {(user.name || 'U').charAt(0)}
             </div>
             <div className="text-center md:text-left">
                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
                  <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase italic flex items-center gap-3">
-                    {user.name}
+                    {user.name || 'User'}
                     {user.isLumiAscend && <Crown size={32} className="text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />}
                  </h1>
                </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Product } from '../types';
-import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store } from 'lucide-react';
 
 interface ProductGridProps {
   products: Product[];
@@ -172,11 +172,23 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 </div>
                 
                 <h3 
-                  className="text-xl font-bold text-slate-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors cursor-pointer"
+                  className="text-xl font-bold text-slate-900 mb-1 leading-tight group-hover:text-indigo-600 transition-colors cursor-pointer"
                   onClick={() => onProductClick?.(product)}
                 >
                   {product.name}
                 </h3>
+                
+                {product.sellerName && (
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md border border-indigo-100">
+                      <Store size={10} />
+                      <span className="text-[9px] font-black uppercase tracking-wider">{product.sellerName}</span>
+                    </div>
+                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verified Merchant</span>
+                  </div>
+                )}
+                
                 <p className="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">{product.description}</p>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">

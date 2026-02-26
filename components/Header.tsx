@@ -245,11 +245,11 @@ const Header: React.FC<HeaderProps> = ({
               <div className="flex flex-col items-end leading-none hidden sm:flex">
                 <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest mb-0.5">User</span>
                 <span className="text-[11px] font-black truncate max-w-[60px] lg:max-w-[100px]">
-                  {user.isLoggedIn ? user.name.split(' ')[0] : 'Connect'}
+                  {user.isLoggedIn ? (user.name || 'User').split(' ')[0] : 'Connect'}
                 </span>
               </div>
               <div className="w-8 h-8 lg:w-9 lg:h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform overflow-hidden text-white font-black text-xs lg:text-sm">
-                 {user.isLoggedIn ? user.name.charAt(0) : <UserIcon size={16} />}
+                 {user.isLoggedIn ? (user.name || 'U').charAt(0) : <UserIcon size={16} />}
               </div>
               {user.isLoggedIn && <ChevronDown size={14} className={`text-slate-500 transition-transform ${showUserPanel ? 'rotate-180' : ''}`} />}
             </div>
@@ -259,10 +259,10 @@ const Header: React.FC<HeaderProps> = ({
                 <div className="p-6 bg-slate-50 border-b border-slate-100">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 ${user.isLumiAscend ? 'bg-indigo-600' : 'bg-slate-900'} text-white rounded-2xl flex items-center justify-center font-black text-xl`}>
-                      {user.name.charAt(0)}
+                      {(user.name || 'U').charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-900 text-sm truncate max-w-[140px]">{user.name}</h4>
+                      <h4 className="font-black text-slate-900 text-sm truncate max-w-[140px]">{user.name || 'User'}</h4>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         {user.isLumiAscend ? (
                           <span className="flex items-center gap-1 text-[9px] font-black text-yellow-600 uppercase tracking-widest">

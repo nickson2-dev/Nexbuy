@@ -135,14 +135,42 @@ export const fetchPendingSellers = async (): Promise<User[]> => {
   if (!db) return [];
   try {
     const usersRef = ref(db, 'users');
-    const snapshot = await get(usersRef);
+    const q = query(usersRef, orderByChild('sellerStatus'), equalTo('pending'));
+    const snapshot = await get(q);
     if (!snapshot.exists()) return [];
-    const users = Object.values(snapshot.val()) as User[];
-    return users.filter(u => u.sellerStatus === 'pending');
+    
+    const users: User[] = [];
+    snapshot.forEach((child) => {
+      users.push({ ...child.val(), id: child.key });
+    });
+    return users;
   } catch (e) {
     console.error("fetchPendingSellers failed:", e);
     return [];
   }
+};
+
+export const updateSellerBadge = async (uid: string, badge: string) => {
+  if (!db) return false;
+  try {
+    const userRef = ref(db, `users/${uid}`);
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+      const existing = snapshot.val();
+      await set(userRef, { ...existing, sellerBadge: badge });
+      
+      // Update all products for this seller
+      const products = await fetchSellerProducts(uid);
+      for (const product of products) {
+        const productRef = ref(db, `seller_products/${product.id}`);
+        await set(productRef, { ...product, sellerBadge: badge });
+      }
+      return true;
+    }
+  } catch (e) {
+    console.error("updateSellerBadge failed:", e);
+  }
+  return false;
 };
 
 export const approveSeller = async (uid: string) => {
@@ -185,6 +213,19 @@ export const fetchSellerProducts = async (sellerId: string): Promise<Product[]> 
     return products.filter(p => p.sellerId === sellerId);
   } catch (e) {
     console.error("fetchSellerProducts failed (possibly due to rules or missing data):", e);
+    return [];
+  }
+};
+
+export const fetchAllSellerProducts = async (): Promise<Product[]> => {
+  if (!db) return [];
+  try {
+    const productsRef = ref(db, 'seller_products');
+    const snapshot = await get(productsRef);
+    if (!snapshot.exists()) return [];
+    return Object.values(snapshot.val()) as Product[];
+  } catch (e) {
+    console.error("fetchAllSellerProducts failed:", e);
     return [];
   }
 };
