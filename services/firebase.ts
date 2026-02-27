@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import { 
   getAuth, 
   Auth, 
@@ -18,12 +19,16 @@ const firebaseConfig = {
   projectId: "next-tech-2ed10",
   storageBucket: "next-tech-2ed10.firebasestorage.app",
   messagingSenderId: "157161682097",
-  appId: "1:157161682097:web:ba8093c6b1d7a0e3a89e90"
+  appId: "1:157161682097:web:ba8093c6b1d7a0e3a89e90",
+  measurementId: "G-SK32PG3TYZ"
 };
 
 const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth: Auth = getAuth(app);
 export const db: Database = getDatabase(app);
+
+// Initialize Analytics conditionally
+export const analytics = typeof window !== 'undefined' ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;
 
 const ADMIN_EMAIL = 'ematannick@gmail.com';
 
@@ -89,10 +94,16 @@ export const signOut = async () => {
 };
 
 export const syncUserProfile = async (uid: string, data: Partial<User>) => {
-  if (!db) return;
+  if (!db || !uid || uid === 'undefined') return;
   try {
     const userRef = ref(db, `users/${uid}`);
-    await set(userRef, { ...data, id: uid });
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+      const existing = snapshot.val();
+      await set(userRef, { ...existing, ...data, id: uid });
+    } else {
+      await set(userRef, { ...data, id: uid });
+    }
   } catch (e) {
     console.error("syncUserProfile failed:", e);
   }
@@ -111,20 +122,23 @@ export const getUserProfile = async (uid: string): Promise<User | null> => {
 };
 
 export const applyAsSeller = async (uid: string, storeName: string, storeDescription: string) => {
-  if (!db) return false;
+  if (!db || !uid || uid === 'undefined') {
+    console.error("applyAsSeller: Invalid UID provided", uid);
+    return false;
+  }
   try {
     const userRef = ref(db, `users/${uid}`);
     const snapshot = await get(userRef);
-    if (snapshot.exists()) {
-      const existing = snapshot.val();
-      await set(userRef, {
-        ...existing,
-        sellerStatus: 'pending',
-        storeName,
-        storeDescription
-      });
-      return true;
-    }
+    const existing = snapshot.exists() ? snapshot.val() : {};
+    
+    await set(userRef, {
+      ...existing,
+      id: uid,
+      sellerStatus: 'pending',
+      storeName,
+      storeDescription
+    });
+    return true;
   } catch (e) {
     console.error("applyAsSeller failed:", e);
   }
@@ -135,18 +149,47 @@ export const fetchPendingSellers = async (): Promise<User[]> => {
   if (!db) return [];
   try {
     const usersRef = ref(db, 'users');
+    // Try query first
     const q = query(usersRef, orderByChild('sellerStatus'), equalTo('pending'));
     const snapshot = await get(q);
-    if (!snapshot.exists()) return [];
     
     const users: User[] = [];
-    snapshot.forEach((child) => {
-      users.push({ ...child.val(), id: child.key });
-    });
+    if (snapshot.exists()) {
+      snapshot.forEach((child) => {
+        users.push({ ...child.val(), id: child.key });
+      });
+    } else {
+      // Fallback: fetch all users and filter manually if query returns nothing (might be due to indexing)
+      const allUsersSnapshot = await get(usersRef);
+      if (allUsersSnapshot.exists()) {
+        allUsersSnapshot.forEach((child) => {
+          const u = child.val();
+          if (u.sellerStatus === 'pending') {
+            users.push({ ...u, id: child.key });
+          }
+        });
+      }
+    }
     return users;
   } catch (e) {
     console.error("fetchPendingSellers failed:", e);
-    return [];
+    // Fallback on error
+    try {
+      const usersRef = ref(db, 'users');
+      const allUsersSnapshot = await get(usersRef);
+      const users: User[] = [];
+      if (allUsersSnapshot.exists()) {
+        allUsersSnapshot.forEach((child) => {
+          const u = child.val();
+          if (u.sellerStatus === 'pending') {
+            users.push({ ...u, id: child.key });
+          }
+        });
+      }
+      return users;
+    } catch (innerErr) {
+      return [];
+    }
   }
 };
 
@@ -214,6 +257,47 @@ export const fetchSellerProducts = async (sellerId: string): Promise<Product[]> 
   } catch (e) {
     console.error("fetchSellerProducts failed (possibly due to rules or missing data):", e);
     return [];
+  }
+};
+
+export const updateMembership = async (uid: string, isLumiAscend: boolean) => {
+  if (!db || !uid || uid === 'undefined') return false;
+  try {
+    const userRef = ref(db, `users/${uid}/isLumiAscend`);
+    await set(userRef, isLumiAscend);
+    return true;
+  } catch (e) {
+    console.error("updateMembership failed:", e);
+    return false;
+  }
+};
+
+export const refreshSellerBadge = async (uid: string) => {
+  if (!db || !uid || uid === 'undefined') return;
+  try {
+    const orders = await fetchOrders();
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const monthlySales = orders.reduce((total, order) => {
+      const orderDate = new Date(order.timestamp);
+      if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
+        const sellerItems = order.items.filter(item => item.sellerId === uid);
+        return total + sellerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      }
+      return total;
+    }, 0);
+
+    let badge = 'Bronze';
+    if (monthlySales >= 20000) badge = 'Platinum';
+    else if (monthlySales >= 5000) badge = 'Gold';
+    else if (monthlySales >= 1000) badge = 'Silver';
+
+    await updateSellerBadge(uid, badge);
+    return badge;
+  } catch (e) {
+    console.error("refreshSellerBadge failed:", e);
   }
 };
 

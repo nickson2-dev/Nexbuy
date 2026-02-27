@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { ChevronLeft, ShoppingCart, Heart, Zap, ShieldCheck, Truck, Star, Info, Share2, Store } from 'lucide-react';
+import { useCurrency } from '../src/context/CurrencyContext';
 
 interface ProductPageProps {
   product: Product;
@@ -12,6 +13,7 @@ interface ProductPageProps {
 }
 
 const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggleWishlist, wishlist, onBack }) => {
+  const { formatPrice } = useCurrency();
   const isInWishlist = wishlist.some(p => p.id === product.id);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '');
 
@@ -112,17 +114,28 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
               </h1>
               
               {product.sellerName && (
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex flex-wrap items-center gap-2 mb-6">
                   <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
                     <Store size={14} />
                     <span className="text-[10px] font-black uppercase tracking-widest">{product.sellerName}</span>
                   </div>
+                  {product.sellerBadge && (
+                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border ${
+                      product.sellerBadge === 'Platinum' ? 'bg-slate-900 text-white border-slate-800' :
+                      product.sellerBadge === 'Gold' ? 'bg-yellow-400 text-slate-900 border-yellow-500' :
+                      product.sellerBadge === 'Silver' ? 'bg-slate-200 text-slate-700 border-slate-300' :
+                      'bg-orange-100 text-orange-700 border-orange-200'
+                    }`}>
+                      <ShieldCheck size={12} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{product.sellerBadge} Tier</span>
+                    </div>
+                  )}
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Merchant</span>
                 </div>
               )}
               <div className="flex items-baseline gap-4">
                 <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
-                  ${product.price.toLocaleString()}
+                  {formatPrice(product.price)}
                 </span>
                 <span className="text-emerald-500 font-black text-[10px] md:text-xs uppercase tracking-widest">In Stock</span>
               </div>

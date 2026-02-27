@@ -20,7 +20,7 @@ import MobileNavbar from './components/MobileNavbar';
 import CartToast from './components/CartToast';
 import LoadingScreen from './components/LoadingScreen';
 import { Product, CartItem, User } from './types';
-import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllSellerProducts } from './services/firebase';
+import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllSellerProducts, updateMembership } from './services/firebase';
 import { PRODUCTS } from './constants';
 import { Zap, Search } from 'lucide-react';
 
@@ -373,7 +373,17 @@ const App: React.FC = () => {
       <AIConsultant onAddToCart={addToCart} />
       <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} total={cart.reduce((s, i) => s + (i.price * i.quantity), 0)} onUpdateQuantity={(id, d) => setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + d) } : item))} onRemove={(id) => setCart(prev => prev.filter(i => i.id !== id))} user={user} onClearCart={() => setCart([])} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <MembershipModal isOpen={isMembershipOpen} onClose={() => setIsMembershipOpen(false)} onUpgrade={() => { setUser(prev => ({...prev, isLumiAscend: true})); setIsMembershipOpen(false); }} />
+      <MembershipModal 
+        isOpen={isMembershipOpen} 
+        onClose={() => setIsMembershipOpen(false)} 
+        onUpgrade={async () => { 
+          if (user.id) {
+            await updateMembership(user.id, true);
+            setUser(prev => ({...prev, isLumiAscend: true}));
+          }
+          setIsMembershipOpen(false); 
+        }} 
+      />
     </div>
   );
 };

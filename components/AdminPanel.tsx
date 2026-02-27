@@ -6,6 +6,7 @@ import {
   fetchShippingRates, updateShippingRate, deleteShippingRate
 } from '../services/firebase';
 import SectionLoader from './SectionLoader';
+import { useCurrency } from '../src/context/CurrencyContext';
 import { 
   X, Edit3, DollarSign, TrendingUp, ShoppingBag, 
   BarChart3, ArrowUpRight, LayoutDashboard, Package, 
@@ -20,6 +21,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onClose }) => {
+  const { formatPrice } = useCurrency();
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'applications' | 'logistics'>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingSellers, setPendingSellers] = useState<User[]>([]);
@@ -161,7 +163,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                     </div>
                   </div>
                   <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Revenue</h4>
-                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">${analytics.totalRevenue.toLocaleString()}</p>
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(analytics.totalRevenue)}</p>
                 </div>
                 
                 <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all">
@@ -172,7 +174,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                     </div>
                   </div>
                   <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Net Yield</h4>
-                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">${analytics.totalProfit.toLocaleString()}</p>
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(analytics.totalProfit)}</p>
                 </div>
 
                 <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-orange-200 transition-all">
@@ -239,7 +241,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
             <div className="space-y-10 animate-slide-up">
               <div className="flex justify-between items-center">
                  <h3 className="text-2xl font-black text-slate-900 uppercase italic">Merchant Pipeline</h3>
-                 <span className="text-[10px] font-black uppercase text-indigo-600 tracking-[0.3em] bg-indigo-50 px-4 py-2 rounded-full">{pendingSellers.length} Awaiting Verification</span>
+                 <div className="flex items-center gap-4">
+                    <button 
+                      onClick={loadAdminData}
+                      disabled={loading}
+                      className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-indigo-50 hover:text-indigo-600 transition-all active:scale-90 disabled:opacity-50"
+                      title="Sync Data"
+                    >
+                      <Activity size={20} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                    <span className="text-[10px] font-black uppercase text-indigo-600 tracking-[0.3em] bg-indigo-50 px-4 py-2 rounded-full">{pendingSellers.length} Awaiting Verification</span>
+                 </div>
               </div>
 
               {pendingSellers.length === 0 ? (
@@ -355,7 +367,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                           </div>
                           <div className="flex items-center gap-8">
                             <div className="text-right">
-                              <p className="text-lg font-black text-indigo-600 tracking-tighter tabular-nums">${cost.toLocaleString()}</p>
+                              <p className="text-lg font-black text-indigo-600 tracking-tighter tabular-nums">{formatPrice(cost)}</p>
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Delivery Fee</p>
                             </div>
                             <button 
@@ -393,7 +405,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                           </div>
                           <div>
                             <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight italic">{product.name}</h3>
-                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] mt-1">${product.price.toLocaleString()} — {product.category}</p>
+                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] mt-1">{formatPrice(product.price)} — {product.category}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-10 text-right">
@@ -496,7 +508,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                             </div>
                           </td>
                           <td className="px-10 py-8">
-                             <span className="text-lg font-black text-slate-900 tracking-tighter tabular-nums">${order.total.toLocaleString()}</span>
+                             <span className="text-lg font-black text-slate-900 tracking-tighter tabular-nums">{formatPrice(order.total)}</span>
                           </td>
                           <td className="px-10 py-8 text-center">
                             <button className="p-3 bg-slate-50 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm">

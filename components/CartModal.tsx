@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Minus, Plus, ShoppingBag, Truck, ShieldCheck, CheckCircle2, ChevronRight, AlertCircle, MapPin, Phone, Home, Globe } from 'lucide-react';
 import { CartItem, User, ShippingAddress } from '../types';
 import { createOrder, fetchShippingRates } from '../services/firebase';
+import { useCurrency } from '../src/context/CurrencyContext';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const CartModal: React.FC<CartModalProps> = ({
   user,
   onClearCart
 }) => {
+  const { formatPrice } = useCurrency();
   const [step, setStep] = useState<'cart' | 'shipping' | 'payment' | 'success'>('cart');
   const [orderComplete, setOrderComplete] = useState<string | null>(null);
   const [shippingRates, setShippingRates] = useState<Record<string, number>>({});
@@ -170,7 +172,7 @@ const CartModal: React.FC<CartModalProps> = ({
                  </div>
                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
                    <span>Amount Due</span>
-                   <span className="text-slate-900 font-black">${finalTotal.toLocaleString()}</span>
+                   <span className="text-slate-900 font-black">{formatPrice(finalTotal)}</span>
                  </div>
                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
                    <span>Est. Delivery</span>
@@ -238,7 +240,7 @@ const CartModal: React.FC<CartModalProps> = ({
                     />
                     {shippingCost > 0 && (
                       <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1 ml-1">
-                        District Rate Applied: ${shippingCost}
+                        District Rate Applied: {formatPrice(shippingCost)}
                       </p>
                     )}
                   </div>
@@ -319,7 +321,7 @@ const CartModal: React.FC<CartModalProps> = ({
                 {shippingCost > 0 && (
                   <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                     <span className="text-[10px] font-black text-slate-400 uppercase">District Fee</span>
-                    <span className="text-xs font-black text-emerald-600">+${shippingCost}</span>
+                    <span className="text-xs font-black text-emerald-600">+{formatPrice(shippingCost)}</span>
                   </div>
                 )}
               </div>
@@ -329,7 +331,7 @@ const CartModal: React.FC<CartModalProps> = ({
                   onClick={handleCheckout}
                   className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl"
                 >
-                  Place Order — ${finalTotal.toLocaleString()}
+                  Place Order — {formatPrice(finalTotal)}
                 </button>
                 <button 
                   onClick={() => setStep('shipping')}
@@ -366,7 +368,7 @@ const CartModal: React.FC<CartModalProps> = ({
                       <h3 className="font-bold text-slate-900 leading-tight text-sm">{item.name}</h3>
                       <button onClick={() => onRemove(item.id)} className="text-slate-300 hover:text-red-500 transition-colors"><X size={16} /></button>
                     </div>
-                    <p className="text-indigo-600 font-black text-sm my-1">${item.price.toLocaleString()}</p>
+                    <p className="text-indigo-600 font-black text-sm my-1">{formatPrice(item.price)}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
                         <button onClick={() => onUpdateQuantity(item.id, -1)} className="p-1 hover:bg-white rounded transition-all"><Minus size={14} /></button>
@@ -386,11 +388,11 @@ const CartModal: React.FC<CartModalProps> = ({
             <div className="space-y-2">
               <div className="flex justify-between text-slate-500 text-sm">
                 <span>Subtotal</span>
-                <span className="font-bold text-slate-900">${total.toLocaleString()}</span>
+                <span className="font-bold text-slate-900">{formatPrice(total)}</span>
               </div>
               <div className="flex justify-between text-2xl font-black text-slate-900 pt-3 mt-3 border-t border-slate-200">
                 <span>Total</span>
-                <span>${total.toLocaleString()}</span>
+                <span>{formatPrice(total)}</span>
               </div>
             </div>
             

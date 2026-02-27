@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ShoppingCart, LogOut, Heart, User as UserIcon, ArrowLeft, UserCircle, Settings, ShieldCheck, Crown, ChevronDown, Package, Zap } from 'lucide-react';
+import { Search, ShoppingCart, LogOut, Heart, User as UserIcon, ArrowLeft, UserCircle, Settings, ShieldCheck, Crown, ChevronDown, Package, Zap, Globe } from 'lucide-react';
 import { User } from '../types';
 import { PRODUCTS } from '../constants';
 import Logo from './Logo';
+import { useCurrency, CURRENCIES, CurrencyCode } from '../src/context/CurrencyContext';
 
 interface HeaderProps {
   currentView: string;
@@ -42,10 +43,13 @@ const Header: React.FC<HeaderProps> = ({
   setSearchQuery,
   isCartPulsing = false
 }) => {
+  const { currency, setCurrency, formatPrice } = useCurrency();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const userPanelRef = useRef<HTMLDivElement>(null);
+  const currencyRef = useRef<HTMLDivElement>(null);
 
   const categories = Array.from(new Set(PRODUCTS.map(p => p.category)));
   
@@ -72,6 +76,9 @@ const Header: React.FC<HeaderProps> = ({
       if (userPanelRef.current && !userPanelRef.current.contains(event.target as Node)) {
         setShowUserPanel(false);
       }
+      if (currencyRef.current && !currencyRef.current.contains(event.target as Node)) {
+        setShowCurrencyDropdown(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -95,8 +102,8 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        <div className="flex-grow max-w-[600px] hidden md:block relative" ref={searchRef}>
-          <div className="flex items-center bg-slate-100/50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white focus-within:border-white transition-all shadow-sm">
+        <div className="flex-grow max-w-[600px] hidden md:flex items-center gap-4 relative" ref={searchRef}>
+          <div className="flex-grow flex items-center bg-slate-100/50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white focus-within:border-white transition-all shadow-sm">
             <Search size={18} className="text-slate-400 mr-3" />
             <input 
               type="text" 
@@ -109,6 +116,42 @@ const Header: React.FC<HeaderProps> = ({
               placeholder="Search trending tech..." 
               className="flex-grow bg-transparent text-sm text-slate-900 font-medium outline-none placeholder:text-slate-400"
             />
+          </div>
+
+          <div className="relative" ref={currencyRef}>
+            <button 
+              onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100/50 border border-slate-200 rounded-2xl hover:bg-white hover:border-slate-300 transition-all text-xs font-black uppercase tracking-widest text-slate-600"
+            >
+              <Globe size={14} className="text-indigo-500" />
+              {currency.code}
+              <ChevronDown size={12} className={`transition-transform ${showCurrencyDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showCurrencyDropdown && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-slide-up z-[210]">
+                <div className="p-2">
+                  {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+                    <button
+                      key={code}
+                      onClick={() => {
+                        setCurrency(code);
+                        setShowCurrencyDropdown(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors text-xs font-bold ${
+                        currency.code === code ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-50 text-slate-600'
+                      }`}
+                    >
+                      <div className="flex flex-col items-start leading-none">
+                        <span className="uppercase tracking-widest mb-1">{code}</span>
+                        <span className="text-[9px] text-slate-400 font-medium">{CURRENCIES[code].label}</span>
+                      </div>
+                      <span className="text-lg">{CURRENCIES[code].symbol}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {showSuggestions && (
@@ -135,7 +178,7 @@ const Header: React.FC<HeaderProps> = ({
                           </div>
                           <div>
                             <p className="text-sm font-bold text-slate-900 leading-tight">{p.name}</p>
-                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-0.5">${p.price}</p>
+                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-0.5">{formatPrice(p.price)}</p>
                           </div>
                         </button>
                       ))}
@@ -205,7 +248,7 @@ const Header: React.FC<HeaderProps> = ({
                             <p className="text-sm font-bold text-slate-900 leading-tight">{p.name}</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{p.category}</p>
                           </div>
-                          <p className="text-xs font-black text-indigo-600">${p.price}</p>
+                          <p className="text-xs font-black text-indigo-600">{formatPrice(p.price)}</p>
                         </button>
                       ))}
                     </div>

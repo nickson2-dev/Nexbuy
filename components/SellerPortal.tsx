@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, Product, Order } from '../types';
-import { applyAsSeller, fetchSellerProducts, createSellerProduct, fetchOrders, updateSellerProduct, deleteSellerProduct } from '../services/firebase';
+import { applyAsSeller, fetchSellerProducts, createSellerProduct, fetchOrders, updateSellerProduct, deleteSellerProduct, refreshSellerBadge } from '../services/firebase';
 import SectionLoader from './SectionLoader';
 import ButtonLoader from './ButtonLoader';
+import { useCurrency } from '../src/context/CurrencyContext';
 import { 
   Store, Package, TrendingUp, DollarSign, Plus, X, 
   ChevronRight, BarChart3, CheckCircle2,
@@ -16,6 +17,7 @@ interface SellerPortalProps {
 }
 
 const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUser }) => {
+  const { formatPrice } = useCurrency();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'orders'>('dashboard');
   const [isApplying, setIsApplying] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -46,6 +48,10 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
       setProducts(p || []);
       // Filter orders that contain items belonging to this seller
       setOrders((o || []).filter(order => order.items.some(item => item.sellerId === user.id)));
+      
+      // Refresh badge based on sales
+      await refreshSellerBadge(user.id);
+      await onRefreshUser();
     } catch (err: any) {
       console.error("Seller portal load failed:", err);
       setError("Asset relay sync interrupted. Please verify merchant credentials.");
@@ -93,6 +99,10 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user.id || user.id === 'undefined') {
+      setError("Authentication required to initialize merchant request.");
+      return;
+    }
     if (!appStoreName.trim()) return;
     setIsApplying(true);
     if (await applyAsSeller(user.id, appStoreName, appStoreDesc)) await onRefreshUser();
@@ -211,7 +221,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                     <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest">Live</div>
                   </div>
                   <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Yield</h4>
-                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">${metrics.rev.toLocaleString()}</p>
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(metrics.rev)}</p>
                 </div>
                 
                 <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
@@ -230,12 +240,25 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                   <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{orders.length}</p>
                 </div>
 
-                <div className="bg-slate-900 p-8 rounded-[40px] text-white flex flex-col justify-center">
+                <div className="bg-slate-900 p-8 rounded-[40px] text-white flex flex-col justify-center relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                    <div className="flex items-center gap-2 mb-4">
                       <Activity size={16} className="text-emerald-400" />
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Merchant Health</h4>
                    </div>
-                   <p className="text-2xl font-black italic tracking-tighter">Verified Alpha</p>
+                   <div className="flex items-center gap-3">
+                      <p className="text-2xl font-black italic tracking-tighter">Verified Alpha</p>
+                      {user.sellerBadge && (
+                        <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                          user.sellerBadge === 'Platinum' ? 'bg-slate-100 text-slate-900' :
+                          user.sellerBadge === 'Gold' ? 'bg-yellow-400 text-slate-900' :
+                          user.sellerBadge === 'Silver' ? 'bg-slate-300 text-slate-900' :
+                          'bg-orange-400 text-white'
+                        }`}>
+                          <ShieldCheck size={10} /> {user.sellerBadge} Tier
+                        </div>
+                      )}
+                   </div>
                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Ecosystem Status: Sync</p>
                 </div>
               </div>
@@ -293,7 +316,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-black text-indigo-600">${order.items.filter(i => i.sellerId === user.id).reduce((s, i) => s + (i.price * i.quantity), 0).toLocaleString()}</p>
+                            <p className="text-sm font-black text-indigo-600">{formatPrice(order.items.filter(i => i.sellerId === user.id).reduce((s, i) => s + (i.price * i.quantity), 0))}</p>
                             <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
                               order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
                             }`}>
@@ -399,7 +422,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                                <span className="font-black text-slate-900 tabular-nums">{p.stock} Units</span>
                              </div>
                           </td>
-                          <td className="px-10 py-8 font-black text-lg tracking-tighter tabular-nums text-slate-900">${p.price.toLocaleString()}</td>
+                          <td className="px-10 py-8 font-black text-lg tracking-tighter tabular-nums text-slate-900">{formatPrice(p.price)}</td>
                           <td className="px-10 py-8 text-right space-x-2">
                             <button onClick={() => setEditingProduct(p)} className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 hover:border-emerald-100 rounded-xl transition-all shadow-sm">
                                <Edit3 size={18} />
@@ -479,7 +502,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                                   </div>
                                </td>
                                <td className="px-10 py-8 text-right font-black text-lg tracking-tighter tabular-nums text-slate-900">
-                                  ${merchantTotal.toLocaleString()}
+                                  {formatPrice(merchantTotal)}
                                </td>
                             </tr>
                           );

@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Product } from '../types';
-import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store } from 'lucide-react';
+import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store, ShieldCheck } from 'lucide-react';
+import { useCurrency } from '../src/context/CurrencyContext';
 
 interface ProductGridProps {
   products: Product[];
@@ -31,6 +32,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   setMinRating,
   onReset
 }) => {
+  const { formatPrice, currency } = useCurrency();
   const isInWishlist = (id: string) => wishlist.some(p => p.id === id);
 
   return (
@@ -41,13 +43,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full xl:w-auto">
           {/* Price Segment Selector */}
           <div className="space-y-2 w-full sm:w-auto">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price Segments</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price Segments ({currency.code})</p>
             <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-100 overflow-x-auto no-scrollbar">
               {[
                 { id: 'all', label: 'All' },
-                { id: 'under50', label: '< $50' },
-                { id: '50-150', label: '$50-$150' },
-                { id: 'over150', label: '$150+' }
+                { id: 'under50', label: `< ${formatPrice(50)}` },
+                { id: '50-150', label: `${formatPrice(50)}-${formatPrice(150)}` },
+                { id: 'over150', label: `${formatPrice(150)}+` }
               ].map(tier => (
                 <button
                   key={tier.id}
@@ -179,11 +181,22 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 </h3>
                 
                 {product.sellerName && (
-                  <div className="flex items-center gap-1.5 mb-3">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
                     <div className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md border border-indigo-100">
                       <Store size={10} />
                       <span className="text-[9px] font-black uppercase tracking-wider">{product.sellerName}</span>
                     </div>
+                    {product.sellerBadge && (
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border ${
+                        product.sellerBadge === 'Platinum' ? 'bg-slate-900 text-white border-slate-800' :
+                        product.sellerBadge === 'Gold' ? 'bg-yellow-400 text-slate-900 border-yellow-500' :
+                        product.sellerBadge === 'Silver' ? 'bg-slate-200 text-slate-700 border-slate-300' :
+                        'bg-orange-100 text-orange-700 border-orange-200'
+                      }`}>
+                        <ShieldCheck size={10} />
+                        <span className="text-[9px] font-black uppercase tracking-wider">{product.sellerBadge}</span>
+                      </div>
+                    )}
                     <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verified Merchant</span>
                   </div>
@@ -193,7 +206,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex flex-col">
-                    <span className="text-2xl font-black text-slate-900">${product.price.toLocaleString()}</span>
+                    <span className="text-2xl font-black text-slate-900">{formatPrice(product.price)}</span>
                     <div className="flex items-center gap-1.5 text-[10px] text-green-600 font-bold uppercase mt-1">
                       <Truck size={12} />
                       <span>Ships Express</span>
