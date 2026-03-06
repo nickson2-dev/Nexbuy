@@ -15,6 +15,7 @@ export interface Product {
   sellerName?: string;
   sellerBadge?: string;
   videoUrl?: string; // For immersive experience
+  sector?: 'tech' | 'art';
   xpGain?: number; // How much XP user gets for buying
   specs?: Record<string, string>;
   isExclusive?: boolean; // For Lumi Ascend members
@@ -73,6 +74,7 @@ export interface User {
   storeDescription?: string;
   sellerBadge?: string;
   isLumiAscend?: boolean; // Paid membership tier
+  department?: string;
 }
 
 export interface Reward {

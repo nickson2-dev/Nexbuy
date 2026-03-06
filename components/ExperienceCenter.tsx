@@ -15,7 +15,7 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
 
   useEffect(() => {
     setIsScanning(true);
-    const timer = setTimeout(() => setIsScanning(false), 2000);
+    const timer = setTimeout(() => setIsScanning(false), 1000);
     return () => clearTimeout(timer);
   }, [index]);
 
@@ -28,7 +28,7 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
         <video 
           key={current.videoUrl || current.image}
           autoPlay muted loop playsInline
-          className="w-full h-full object-cover opacity-40 transition-opacity duration-1000 grayscale"
+          className="w-full h-full object-cover opacity-40 transition-opacity duration-500 grayscale"
         >
           <source src={current.videoUrl || "https://assets.mixkit.co/videos/preview/mixkit-circuit-board-details-moving-145-large.mp4"} type="video/mp4" />
         </video>
@@ -108,7 +108,7 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
                <img 
                  src={current.image} 
                  alt={current.name} 
-                 className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(99,102,241,0.3)] transform transition-all duration-1000 ${isScanning ? 'blur-sm scale-90 opacity-50' : 'scale-100 opacity-100'}`}
+                 className={`w-full h-full object-contain drop-shadow-[0_0_80px_rgba(99,102,241,0.3)] transform transition-all duration-500 ${isScanning ? 'blur-sm scale-90 opacity-50' : 'scale-100 opacity-100'}`}
                />
                <div className="absolute top-8 left-8 text-[10px] font-bold text-indigo-400/50">
                   <p>COORD_X: 42.9221</p>
@@ -140,7 +140,7 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
             {products.map((_, i) => (
               <div 
                 key={i} 
-                className={`h-1 md:h-1.5 rounded-full transition-all duration-700 ${i === index % products.length ? 'w-12 md:w-24 bg-indigo-500' : 'w-2 md:w-4 bg-white/10'}`}
+                className={`h-1 md:h-1.5 rounded-full transition-all duration-300 ${i === index % products.length ? 'w-12 md:w-24 bg-indigo-500' : 'w-2 md:w-4 bg-white/10'}`}
               ></div>
             ))}
           </div>

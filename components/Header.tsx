@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, ShoppingCart, LogOut, Heart, User as UserIcon, ArrowLeft, UserCircle, Settings, ShieldCheck, Crown, ChevronDown, Package, Zap, Globe } from 'lucide-react';
-import { User } from '../types';
-import { PRODUCTS } from '../constants';
+import { User, Product } from '../types';
 import Logo from './Logo';
 import { useCurrency, CURRENCIES, CurrencyCode } from '../src/context/CurrencyContext';
 
 interface HeaderProps {
   currentView: string;
+  products: Product[];
   cartCount: number;
   wishlistCount: number;
   onOpenCart: () => void;
@@ -27,6 +27,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ 
   currentView,
+  products,
   cartCount, 
   wishlistCount,
   onOpenCart, 
@@ -51,10 +52,10 @@ const Header: React.FC<HeaderProps> = ({
   const userPanelRef = useRef<HTMLDivElement>(null);
   const currencyRef = useRef<HTMLDivElement>(null);
 
-  const categories = Array.from(new Set(PRODUCTS.map(p => p.category)));
+  const categories: string[] = Array.from(new Set(products.map(p => p.category)));
   
   const productSuggestions = searchQuery.trim().length >= 2 
-    ? PRODUCTS.filter(p => 
+    ? products.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         p.category.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 4)
@@ -66,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({
       ).slice(0, 3)
     : [];
 
-  const trendingProducts = PRODUCTS.slice(0, 3);
+  const trendingProducts = products.slice(0, 3);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -85,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-20 lg:left-64 z-[150] bg-white/80 backdrop-blur-2xl border-b border-slate-100 transition-all duration-500">
+    <header className="fixed top-0 right-0 left-0 md:left-20 lg:left-64 z-[150] bg-white/80 backdrop-blur-2xl border-b border-slate-100 transition-all duration-200">
       <div className="max-w-[1600px] mx-auto flex items-center h-16 lg:h-20 px-4 lg:px-8 justify-between gap-6">
         <div className="flex items-center gap-4">
           {currentView !== 'home' && (

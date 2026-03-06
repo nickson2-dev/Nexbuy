@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Reward } from '../types';
 import { REWARDS } from '../constants';
-import { Trophy, Gift, Zap, ShieldCheck, X, GripVertical, Crown } from 'lucide-react';
+import { Trophy, Gift, Zap, ShieldCheck, X, GripVertical, Crown, Ticket } from 'lucide-react';
 
 interface GamificationWidgetProps {
   user: User;
@@ -11,6 +11,8 @@ interface GamificationWidgetProps {
 const GamificationWidget: React.FC<GamificationWidgetProps> = ({ user, onDailyClaim }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [claimedToday, setClaimedToday] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [redeemStatus, setRedeemStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [position, setPosition] = useState({ x: window.innerWidth - 100, y: window.innerHeight - 100 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -31,6 +33,16 @@ const GamificationWidget: React.FC<GamificationWidgetProps> = ({ user, onDailyCl
   const handleClaim = () => {
     onDailyClaim();
     setClaimedToday(true);
+  };
+
+  const handleRedeem = () => {
+    if (promoCode.toUpperCase() === 'NEXBUY15') {
+      setRedeemStatus('success');
+      setTimeout(() => setRedeemStatus('idle'), 5000);
+    } else {
+      setRedeemStatus('error');
+      setTimeout(() => setRedeemStatus('idle'), 3000);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
@@ -124,6 +136,40 @@ const GamificationWidget: React.FC<GamificationWidgetProps> = ({ user, onDailyCl
                   <span className="text-[10px] font-black text-indigo-600">{r.cost} XP</span>
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <Ticket size={12} /> Redeem Promo Code
+              </p>
+              <div className="flex gap-2">
+                <input 
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  placeholder="Enter code..."
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                />
+                <button 
+                  onClick={handleRedeem}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all active:scale-95"
+                >
+                  Redeem
+                </button>
+              </div>
+              {redeemStatus === 'success' && (
+                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl animate-slide-up">
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight">
+                    Reward Unlocked: 15% Discount Applied!
+                  </p>
+                  <p className="text-[9px] text-emerald-500 mt-1">Use code <span className="font-black">NEXBUY15</span> at checkout.</p>
+                </div>
+              )}
+              {redeemStatus === 'error' && (
+                <p className="text-[10px] font-bold text-red-500 animate-fade-in px-1">
+                  Invalid code. Please try again.
+                </p>
+              )}
             </div>
           </div>
         </div>

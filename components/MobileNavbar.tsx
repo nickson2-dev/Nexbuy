@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Search, FlaskConical, Heart, ShoppingBag, User as UserIcon } from 'lucide-react';
+import { Home, Search, FlaskConical, Heart, ShoppingBag, User as UserIcon, Palette } from 'lucide-react';
 import { User } from '../types';
 
 interface MobileNavbarProps {
@@ -23,8 +23,10 @@ const MobileNavbar: React.FC<MobileNavbarProps> = ({
   const NavItem = ({ icon: Icon, view, active, onClick, count }: any) => (
     <button 
       onClick={onClick || (() => onNavigate(view))}
-      className={`relative flex flex-col items-center justify-center w-full h-full transition-all duration-300 ${
-        active ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+      className={`relative flex flex-col items-center justify-center w-full h-full transition-all duration-150 ${
+        active 
+          ? 'text-indigo-600' 
+          : 'text-slate-400 hover:text-slate-600'
       }`}
     >
       <Icon size={24} className={`${active ? 'scale-110 drop-shadow-[0_0_8px_rgba(79,70,229,0.3)]' : ''}`} />
@@ -45,6 +47,11 @@ const MobileNavbar: React.FC<MobileNavbarProps> = ({
         icon={Home} 
         view="home" 
         active={currentView === 'home'} 
+      />
+      <NavItem 
+        icon={Palette} 
+        view="art" 
+        active={currentView === 'art'} 
       />
       <NavItem 
         icon={Search} 

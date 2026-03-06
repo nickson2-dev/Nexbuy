@@ -4,10 +4,11 @@ import { applyAsSeller, fetchSellerProducts, createSellerProduct, fetchOrders, u
 import SectionLoader from './SectionLoader';
 import ButtonLoader from './ButtonLoader';
 import { useCurrency } from '../src/context/CurrencyContext';
+import { GoogleGenAI } from "@google/genai";
 import { 
   Store, Package, TrendingUp, DollarSign, Plus, X, 
   ChevronRight, BarChart3, CheckCircle2,
-  Target, Activity, ShieldAlert, Zap, ArrowLeft, ChevronLeft, List, Edit3, Trash2, ShieldCheck, Info, Search, Filter
+  Target, Activity, ShieldAlert, Zap, ArrowLeft, ChevronLeft, List, Edit3, Trash2, ShieldCheck, Info, Search, Filter, Sparkles, Wand2
 } from 'lucide-react';
 
 interface SellerPortalProps {
@@ -31,11 +32,106 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
   const [appStoreDesc, setAppStoreDesc] = useState('');
 
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id' | 'sellerId'>>({
-    name: '', price: 0, costPrice: 0, category: 'Electronics', image: '', rating: 5.0, description: '', stock: 10, specs: {}, xpGain: 100
+    name: '', price: 0, costPrice: 0, category: 'Electronics', sector: 'tech', image: '', rating: 5.0, description: '', stock: 10, specs: {}, xpGain: 100
   });
 
   const [specKey, setSpecKey] = useState('');
   const [specValue, setSpecValue] = useState('');
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
+  const enhanceArtImage = async () => {
+    const imageUrl = editingProduct ? editingProduct.image : newProduct.image;
+    if (!imageUrl) {
+      alert("Please provide a visual asset URL first.");
+      return;
+    }
+
+    setIsEnhancing(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      
+      // Fetch the image
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      const base64Data = await base64Promise;
+      const base64String = base64Data.split(',')[1];
+
+      const result = await ai.models.generateContent({
+        model: "gemini-3.1-flash-image-preview",
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                data: base64String,
+                mimeType: blob.type || "image/png"
+              }
+            },
+            {
+              text: "Enhance this art piece for a professional showcase. Remove the background and place it on a clean, minimalist studio background. Make it look like a high-end product listing on Pinterest. Return only the enhanced image."
+            }
+          ]
+        }
+      });
+
+      let enhancedImageUrl = '';
+      for (const part of result.candidates[0].content.parts) {
+        if (part.inlineData) {
+          enhancedImageUrl = `data:image/png;base64,${part.inlineData.data}`;
+          break;
+        }
+      }
+
+      if (enhancedImageUrl) {
+        if (editingProduct) {
+          setEditingProduct({ ...editingProduct, image: enhancedImageUrl });
+        } else {
+          setNewProduct({ ...newProduct, image: enhancedImageUrl });
+        }
+      } else {
+        throw new Error("AI failed to generate an enhanced image.");
+      }
+    } catch (err) {
+      console.error("AI Enhancement Error:", err);
+      alert("AI Enhancement failed. Please check the image URL and try again. Note: The URL must allow cross-origin requests.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const generateProfessionalDescription = async () => {
+    const name = editingProduct ? editingProduct.name : newProduct.name;
+    if (!name) {
+      alert("Please provide an asset name first.");
+      return;
+    }
+
+    setIsEnhancing(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const result = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Generate a professional, high-end gallery description for an art piece named "${name}". The description should be elegant, sophisticated, and suitable for a Pinterest-style showcase. Keep it under 150 words.`
+      });
+
+      const description = result.text;
+      if (description) {
+        if (editingProduct) {
+          setEditingProduct({ ...editingProduct, description });
+        } else {
+          setNewProduct({ ...newProduct, description });
+        }
+      }
+    } catch (err) {
+      console.error("AI Description Error:", err);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const hasFullAccess = user.role === 'admin' || (user.role === 'seller' && user.sellerStatus === 'approved');
 
@@ -99,14 +195,30 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     if (!user.id || user.id === 'undefined') {
       setError("Authentication required to initialize merchant request.");
       return;
     }
-    if (!appStoreName.trim()) return;
+    if (!appStoreName.trim()) {
+      setError("Store name is required.");
+      return;
+    }
     setIsApplying(true);
-    if (await applyAsSeller(user.id, appStoreName, appStoreDesc)) await onRefreshUser();
-    setIsApplying(false);
+    try {
+      const success = await applyAsSeller(user.id, appStoreName, appStoreDesc);
+      if (success) {
+        await onRefreshUser();
+        // The UI will update based on the new user state (sellerStatus: 'pending')
+      } else {
+        setError("Failed to submit application. Please check your connection and try again.");
+      }
+    } catch (err) {
+      console.error("Application error:", err);
+      setError("An unexpected error occurred during application submission.");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -118,7 +230,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
       const updatedProducts = await fetchSellerProducts(user.id);
       setProducts(updatedProducts);
       setShowAddProduct(false);
-      setNewProduct({ name: '', price: 0, costPrice: 0, category: 'Electronics', image: '', rating: 5.0, description: '', stock: 10, specs: {}, xpGain: 100 });
+      setNewProduct({ name: '', price: 0, costPrice: 0, category: 'Electronics', sector: 'tech', image: '', rating: 5.0, description: '', stock: 10, specs: {}, xpGain: 100 });
     }
     setLoading(false);
   };
@@ -279,7 +391,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                       {metrics.trend.map((h, i) => (
                         <div key={i} className="flex-grow group relative">
                           <div 
-                            className="w-full bg-slate-100 rounded-t-xl group-hover:bg-emerald-500 transition-all duration-500 cursor-help" 
+                            className="w-full bg-slate-100 rounded-t-xl group-hover:bg-emerald-500 transition-all duration-200 cursor-help" 
                             style={{ height: `${h}%` }}
                           >
                             <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -409,7 +521,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                         <tr key={p.id} className="group hover:bg-slate-50 transition-all">
                           <td className="px-10 py-8 flex items-center gap-6">
                              <div className="w-16 h-16 rounded-2xl overflow-hidden border bg-slate-100">
-                                <img src={p.image} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                <img src={p.image} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-200" />
                              </div>
                              <span className="font-black text-slate-900 uppercase italic tracking-tighter text-lg">{p.name}</span>
                           </td>
@@ -544,6 +656,23 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
               </div>
 
               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Asset Sector</label>
+                 <select 
+                    value={editingProduct ? editingProduct.sector : newProduct.sector} 
+                    onChange={e => {
+                      const v = e.target.value as 'tech' | 'art';
+                      editingProduct ? setEditingProduct({...editingProduct, sector: v}) : setNewProduct({...newProduct, sector: v});
+                    }} 
+                    className={`w-full bg-slate-50 p-6 rounded-2xl outline-none focus:ring-2 transition-all font-bold ${
+                      (editingProduct?.sector === 'art' || newProduct.sector === 'art') ? 'focus:ring-indigo-500' : 'focus:ring-emerald-500'
+                    }`}
+                 >
+                    <option value="tech">Tech (Nexbuy Standard)</option>
+                    <option value="art">Art (Professional Showcase)</option>
+                 </select>
+              </div>
+
+              <div className="space-y-2">
                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Market Price ($)</label>
                  <input 
                     type="number" 
@@ -573,16 +702,29 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                  />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Visual Asset URL</label>
-                 <input 
-                    type="text" 
-                    placeholder="https://..." 
-                    value={editingProduct ? editingProduct.image : newProduct.image} 
-                    onChange={e => editingProduct ? setEditingProduct({...editingProduct, image: e.target.value}) : setNewProduct({...newProduct, image: e.target.value})} 
-                    className="w-full bg-slate-50 p-6 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium text-sm" 
-                    required 
-                 />
+                 <div className="relative">
+                   <input 
+                      type="text" 
+                      placeholder="https://..." 
+                      value={editingProduct ? editingProduct.image : newProduct.image} 
+                      onChange={e => editingProduct ? setEditingProduct({...editingProduct, image: e.target.value}) : setNewProduct({...newProduct, image: e.target.value})} 
+                      className="w-full bg-slate-50 p-6 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium text-sm pr-32" 
+                      required 
+                   />
+                   {(editingProduct?.sector === 'art' || newProduct.sector === 'art') && (
+                     <button
+                       type="button"
+                       onClick={enhanceArtImage}
+                       disabled={isEnhancing}
+                       className="absolute right-2 top-2 bottom-2 bg-indigo-600 text-white px-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+                     >
+                       {isEnhancing ? <Activity size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                       AI Enhance
+                     </button>
+                   )}
+                 </div>
               </div>
 
               <div className="space-y-2">
@@ -625,12 +767,26 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
               </div>
 
               <div className="col-span-1 md:col-span-2 space-y-2">
-                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Asset Narrative</label>
+                 <div className="flex justify-between items-center ml-1">
+                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Asset Narrative</label>
+                   {(editingProduct?.sector === 'art' || newProduct.sector === 'art') && (
+                     <button
+                       type="button"
+                       onClick={generateProfessionalDescription}
+                       disabled={isEnhancing}
+                       className="text-[10px] font-black uppercase text-indigo-600 tracking-widest hover:text-indigo-800 transition-all flex items-center gap-1"
+                     >
+                       <Wand2 size={12} /> AI Generate Description
+                     </button>
+                   )}
+                 </div>
                  <textarea 
                     placeholder="Describe the engineering and benefit..." 
                     value={editingProduct ? editingProduct.description : newProduct.description} 
                     onChange={e => editingProduct ? setEditingProduct({...editingProduct, description: e.target.value}) : setNewProduct({...newProduct, description: e.target.value})} 
-                    className="w-full bg-slate-50 p-6 rounded-2xl outline-none h-40 focus:ring-2 focus:ring-emerald-500 transition-all font-medium leading-relaxed" 
+                    className={`w-full bg-slate-50 p-6 rounded-2xl outline-none h-40 focus:ring-2 transition-all font-medium leading-relaxed ${
+                      (editingProduct?.sector === 'art' || newProduct.sector === 'art') ? 'focus:ring-indigo-500' : 'focus:ring-emerald-500'
+                    }`} 
                     required 
                  />
               </div>

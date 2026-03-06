@@ -15,12 +15,14 @@ import AccountPage from './components/AccountPage';
 import AdminPanel from './components/AdminPanel';
 import SellerPortal from './components/SellerPortal';
 import ExperienceCenter from './components/ExperienceCenter';
+import ArtSector from './components/ArtSector';
 import Sidebar from './components/Sidebar';
 import MobileNavbar from './components/MobileNavbar';
+import MobileSidebar from './components/MobileSidebar';
 import CartToast from './components/CartToast';
 import LoadingScreen from './components/LoadingScreen';
 import { Product, CartItem, User } from './types';
-import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllSellerProducts, updateMembership } from './services/firebase';
+import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllProducts, listenToProducts, seedProducts, updateMembership, updateSellerProduct, deleteSellerProduct } from './services/firebase';
 import { PRODUCTS } from './constants';
 import { Zap, Search } from 'lucide-react';
 
@@ -31,29 +33,41 @@ const App: React.FC = () => {
   const [minRating, setMinRating] = useState<number>(0);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<Product[]>([]);
-  const [currentView, setCurrentView] = useState<'home' | 'wishlist' | 'product' | 'settings' | 'account' | 'admin' | 'seller' | 'experience'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'wishlist' | 'product' | 'settings' | 'account' | 'admin' | 'seller' | 'experience' | 'art'>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cartPulse, setCartPulse] = useState(false);
   const [addedToCartToast, setAddedToCartToast] = useState({ name: '', show: false });
-  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [user, setUser] = useState<User>({
     id: '', email: '', name: 'Guest', points: 0, level: 1, streak: 0, isLoggedIn: false, role: 'customer', isLumiAscend: false
   });
 
-  const categories = useMemo(() => ['All', ...new Set(PRODUCTS.map(p => p.category))], []);
+  useEffect(() => {
+    console.log("App: Current products state updated", { count: products.length, source: products === PRODUCTS ? 'Local' : 'Firebase' });
+  }, [products]);
+
+  const categories = useMemo(() => ['All', ...new Set(products.map(p => p.category))], [products]);
   const isAdmin = useMemo(() => user.isLoggedIn && (user.email?.toLowerCase() === 'ematannick@gmail.com' || user.role === 'admin'), [user]);
 
   useEffect(() => {
-    const loadSellerProducts = async () => {
-      const sp = await fetchAllSellerProducts();
-      setSellerProducts(sp);
-    };
-    loadSellerProducts();
+    // Listen for real-time product updates
+    const unsubscribeProducts = listenToProducts((p) => {
+      if (p && p.length > 0) {
+        setProducts(p);
+      } else {
+        // Fallback to local products if DB is empty
+        setProducts(PRODUCTS);
+      }
+    });
+
+    // Attempt to seed products if DB is empty (will only work if logged in as admin/seller usually)
+    seedProducts(PRODUCTS);
 
     const unsubscribeAuth = onAuthStateChanged((profile) => {
       if (profile) {
@@ -67,6 +81,7 @@ const App: React.FC = () => {
     return () => {
       unsubscribeNotify();
       unsubscribeAuth();
+      unsubscribeProducts();
     };
   }, []);
 
@@ -77,11 +92,9 @@ const App: React.FC = () => {
     }
   };
 
-  const allProducts = useMemo(() => [...PRODUCTS, ...sellerProducts], [sellerProducts]);
-
   const filteredProducts = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    return allProducts.filter(p => {
+    return products.filter(p => {
       if (p.isExclusive && !user.isLumiAscend && !isAdmin) return false;
       const matchesSearch = !query || p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
       const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
@@ -153,6 +166,7 @@ const App: React.FC = () => {
       seller: 'Seller Portal | Nexbuy Hub',
       admin: 'Nexus Command | Admin Control',
       experience: 'Nexbuy Labs | Future Tech Experience',
+      art: 'Art Sector | Professional Showcase x Nexbuy',
       settings: 'Settings | Nexbuy'
     };
     
@@ -163,6 +177,7 @@ const App: React.FC = () => {
       seller: 'Access the Nexbuy Seller Portal to manage your premium tech inventory.',
       admin: 'Nexus Command Center for global ecosystem governance.',
       experience: 'Explore the future of tech in the Nexbuy Labs experience center.',
+      art: 'Enter the Art Sector, where illegal graphics meet premium tech curation.',
       settings: 'Configure your Nexbuy interface and account preferences.'
     };
     
@@ -174,6 +189,38 @@ const App: React.FC = () => {
       }
     }
   }, [currentView]);
+
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      // Swipe from left to right: deltaX > 100, and touchStartX was near the left edge
+      // Also ensure it's mostly horizontal (deltaX > abs(deltaY))
+      if (touchStartX < 50 && deltaX > 100 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        setIsMobileSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
 
   if (loading) {
     return <LoadingScreen />;
@@ -193,6 +240,7 @@ const App: React.FC = () => {
         <div className="flex-grow flex flex-col min-w-0 pt-16 lg:pt-20">
           <Header 
             currentView={currentView}
+            products={products}
             cartCount={cart.reduce((s, i) => s + i.quantity, 0)} 
             wishlistCount={wishlist.length} 
             onOpenCart={() => setIsCartOpen(true)} 
@@ -240,15 +288,39 @@ const App: React.FC = () => {
             {currentView === 'wishlist' && <WishlistPage products={wishlist} onAddToCart={addToCart} onToggleWishlist={p => setWishlist(prev => prev.filter(w => w.id !== p.id))} onGoHome={handleBack} />}
             {currentView === 'settings' && <SettingsPage onBack={handleBack} />}
             {currentView === 'account' && <AccountPage user={user} isAdmin={isAdmin} onNavigate={handleNavigation} onLogout={() => { signOut(); handleNavigation('home'); }} onRefreshUser={refreshUserData} onOpenMembership={() => setIsMembershipOpen(true)} />}
-            {currentView === 'admin' && isAdmin && <AdminPanel products={PRODUCTS} onSave={() => {}} onDelete={() => {}} onClose={handleBack} />}
+            {currentView === 'admin' && isAdmin && (
+              <AdminPanel 
+                products={products} 
+                onSave={async (p) => {
+                  await updateSellerProduct(p.id, p);
+                }} 
+                onDelete={async (id) => {
+                  await deleteSellerProduct(id);
+                }} 
+                onClose={handleBack} 
+              />
+            )}
             {currentView === 'seller' && <SellerPortal user={user} onClose={handleBack} onRefreshUser={refreshUserData} />}
-            {currentView === 'experience' && <ExperienceCenter products={PRODUCTS.filter(p => !!p.videoUrl)} onAddToCart={addToCart} onClose={handleBack} />}
+            {currentView === 'experience' && <ExperienceCenter products={products.filter(p => !!p.videoUrl)} onAddToCart={addToCart} onClose={handleBack} />}
+            {currentView === 'art' && <ArtSector products={products} user={user} onAddToCart={addToCart} onClose={handleBack} onOpenSeller={() => handleNavigation('seller')} />}
           </main>
           <Footer />
         </div>
       </div>
       
       <MobileNavbar currentView={currentView} onNavigate={handleNavigation} onOpenCart={() => setIsCartOpen(true)} onOpenSearch={() => { handleNavigation('home'); setIsSearchOpen(true); }} cartCount={cart.reduce((s, i) => s + i.quantity, 0)} user={user} />
+      
+      {/* Mobile Swipe Handle Indicator */}
+      <div className="md:hidden fixed left-0 top-1/2 -translate-y-1/2 w-1.5 h-16 bg-slate-200/50 rounded-r-full z-[200] pointer-events-none" />
+
+      <MobileSidebar 
+        isOpen={isMobileSidebarOpen} 
+        onClose={() => setIsMobileSidebarOpen(false)} 
+        user={user} 
+        onLogout={() => { signOut(); handleNavigation('home'); }} 
+        onNavigate={handleNavigation}
+        categories={categories}
+      />
       
       {isSearchOpen && (
         <div className="fixed inset-0 z-[250] bg-white animate-fade-in flex flex-col">
@@ -295,7 +367,7 @@ const App: React.FC = () => {
                 <div>
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Recommended for you</h4>
                   <div className="grid grid-cols-1 gap-4">
-                    {PRODUCTS.slice(0, 3).map(p => (
+                    {products.slice(0, 3).map(p => (
                       <button
                         key={p.id}
                         onClick={() => {
@@ -319,12 +391,12 @@ const App: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-8">
-                {PRODUCTS.filter(p => 
+                {products.filter(p => 
                   p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                   p.category.toLowerCase().includes(searchQuery.toLowerCase())
                 ).length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {PRODUCTS.filter(p => 
+                    {products.filter(p => 
                       p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       p.category.toLowerCase().includes(searchQuery.toLowerCase())
                     ).map(p => (
@@ -370,7 +442,7 @@ const App: React.FC = () => {
 
       <CartToast name={addedToCartToast.name} show={addedToCartToast.show} onOpenCart={() => setIsCartOpen(true)} />
       <GamificationWidget user={user} onDailyClaim={() => handlePointsUpdate(100)} />
-      <AIConsultant onAddToCart={addToCart} />
+      <AIConsultant onAddToCart={addToCart} products={products} />
       <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} total={cart.reduce((s, i) => s + (i.price * i.quantity), 0)} onUpdateQuantity={(id, d) => setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + d) } : item))} onRemove={(id) => setCart(prev => prev.filter(i => i.id !== id))} user={user} onClearCart={() => setCart([])} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       <MembershipModal 

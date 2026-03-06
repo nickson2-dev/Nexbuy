@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, ShieldCheck, AlertCircle } from 'lucide-react';
-import { signIn, signUp } from '../services/firebase';
+import { X, Mail, Lock, User as UserIcon, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { signIn, signUp, resetPassword } from '../services/firebase';
 import ButtonLoader from './ButtonLoader';
 
 interface LoginModalProps {
@@ -15,6 +15,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -22,6 +23,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
@@ -34,6 +36,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       onClose();
     } catch (err: any) {
       setError(err.message || "Authentication failed. Please check credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+    
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      await resetPassword(email);
+      setSuccess("Password reset email sent! Please check your inbox.");
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset email.");
     } finally {
       setLoading(false);
     }
@@ -66,6 +87,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 text-sm animate-fade-in">
               <AlertCircle size={20} className="flex-shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-3 text-emerald-600 text-sm animate-fade-in">
+              <CheckCircle2 size={20} className="flex-shrink-0" />
+              <span>{success}</span>
             </div>
           )}
 
@@ -108,9 +136,21 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password" 
                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                required
+                required={!success}
               />
             </div>
+
+            {!isRegister && (
+              <div className="flex justify-end">
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
 
             <button 
               type="submit"

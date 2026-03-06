@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Heart, Settings, User as UserIcon, LogOut, Store, ShieldCheck, FlaskConical } from 'lucide-react';
+import { Home, Heart, Settings, User as UserIcon, LogOut, Store, ShieldCheck, FlaskConical, Palette } from 'lucide-react';
 import { User } from '../types';
 import Logo from './Logo';
 
@@ -16,7 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
   const NavItem = ({ icon: Icon, label, view, active, badge }: any) => (
     <button
       onClick={() => onNavigate(view)}
-      className={`group relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-300 ${
+      className={`group relative w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-150 ${
         active 
         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
         : 'text-slate-400 hover:bg-white/5 hover:text-white'
@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
   );
 
   return (
-    <aside className="hidden md:flex flex-col w-20 lg:w-64 h-screen sticky top-0 bg-slate-950 border-r border-white/5 p-4 z-[160] transition-all duration-500 group overflow-hidden">
+    <aside className="hidden md:flex flex-col w-20 lg:w-64 h-screen sticky top-0 bg-slate-950 border-r border-white/5 p-4 z-[160] transition-all duration-200 group overflow-hidden">
       <div className="flex items-center gap-4 mb-10 px-2 overflow-hidden cursor-pointer" onClick={() => onNavigate('home')}>
         <Logo light showText={false} className="lg:hidden" />
         <Logo light className="hidden lg:flex" />
@@ -41,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
 
       <nav className="flex-grow space-y-2 overflow-y-auto no-scrollbar">
         <NavItem icon={Home} label="Storefront" view="home" active={currentView === 'home'} />
+        <NavItem icon={Palette} label="Art Sector" view="art" active={currentView === 'art'} />
         <NavItem icon={FlaskConical} label="Nexbuy Labs" view="experience" active={currentView === 'experience'} badge />
         <NavItem icon={Heart} label="Wishlist" view="wishlist" active={currentView === 'wishlist'} />
         

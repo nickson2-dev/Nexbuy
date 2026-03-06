@@ -53,7 +53,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
             <img 
               src={product.image} 
               alt={product.name} 
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute top-4 md:top-6 left-4 md:left-6 z-10">
               <span className="bg-slate-900/80 backdrop-blur-md text-indigo-400 text-[8px] md:text-[10px] font-black px-3 md:px-4 py-1.5 md:py-2 rounded-full uppercase tracking-[0.2em] border border-white/10">

@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Product } from '../types';
-import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store, ShieldCheck, X, MessageSquare } from 'lucide-react';
 import { useCurrency } from '../src/context/CurrencyContext';
 
 interface ProductGridProps {
@@ -33,10 +33,48 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   onReset
 }) => {
   const { formatPrice, currency } = useCurrency();
+  const [showToast, setShowToast] = useState(false);
+  const [lastAddedProduct, setLastAddedProduct] = useState<Product | null>(null);
+
   const isInWishlist = (id: string) => wishlist.some(p => p.id === id);
 
+  const handleAddToCart = (product: Product) => {
+    onAddToCart(product);
+    setLastAddedProduct(product);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 5000);
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Rating Feedback Toast */}
+      {showToast && lastAddedProduct && (
+        <div className="fixed bottom-8 right-8 z-[300] animate-slide-up">
+          <div className="bg-slate-900 text-white p-5 rounded-[24px] shadow-2xl border border-white/10 flex items-center gap-4 max-w-sm">
+            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <MessageSquare size={24} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-1">Feedback Requested</p>
+              <p className="text-sm font-bold leading-tight">How would you rate the {lastAddedProduct.name}?</p>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button key={star} className="text-yellow-500 hover:scale-125 transition-transform">
+                    <Star size={16} fill={star <= 4 ? "currentColor" : "none"} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowToast(false)}
+              className="p-1 hover:bg-white/10 rounded-full self-start"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Filter Toolbar - Only show if filter props are provided */}
       {setPriceTier && setMinRating && onReset && (
         <div className="bg-white/50 backdrop-blur-xl border border-slate-100 rounded-[24px] md:rounded-[32px] p-4 lg:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
@@ -114,7 +152,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           {products.map((product) => (
             <div 
               key={product.id} 
-              className="group relative bg-white rounded-[32px] overflow-hidden border border-slate-100 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(79,70,229,0.1)] hover:-translate-y-2"
+              className="group relative bg-white rounded-[32px] overflow-hidden border border-slate-100 transition-all duration-200 hover:shadow-[0_20px_50px_rgba(79,70,229,0.1)] hover:-translate-y-2"
             >
               {/* Status Badges */}
               <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
@@ -142,7 +180,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 </button>
                 <button 
                   onClick={() => onQuickView(product)}
-                  className="w-10 h-10 bg-white/90 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all backdrop-blur-md translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-300"
+                  className="w-10 h-10 bg-white/90 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all backdrop-blur-md translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 duration-150"
                 >
                   <Eye size={20} />
                 </button>
@@ -152,12 +190,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 className="relative aspect-square overflow-hidden bg-slate-50 cursor-pointer"
                 onClick={() => onProductClick?.(product)}
               >
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                  className="absolute bottom-6 left-6 right-6 bg-slate-900 text-white h-14 rounded-2xl flex items-center justify-center gap-3 shadow-2xl translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-indigo-600 active:scale-95"
+                  onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
+                  className="absolute bottom-6 left-6 right-6 bg-slate-900 text-white h-14 rounded-2xl flex items-center justify-center gap-3 shadow-2xl translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-150 hover:bg-indigo-600 active:scale-95"
                 >
                   <ShoppingCart size={20} />
                   <span className="font-bold">Add to Cart</span>

@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Sparkles, X, User as UserIcon, GripVertical, Bot } from 'lucide-react';
 import { getShoppingAdvice } from '../services/geminiService';
-import { PRODUCTS } from '../constants';
 import { Product } from '../types';
 
 interface AIConsultantProps {
   onAddToCart: (product: Product) => void;
+  products: Product[];
 }
 
-const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart }) => {
+const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart, products }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
@@ -94,7 +94,7 @@ const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart }) => {
     setMessages(prev => [...prev, { role: 'user', text: userQuery }]);
     setIsLoading(true);
 
-    const advice = await getShoppingAdvice(userQuery, PRODUCTS);
+    const advice = await getShoppingAdvice(userQuery, products);
     setMessages(prev => [...prev, { role: 'ai', text: advice || "I'm here to help you choose the best tech." }]);
     setIsLoading(false);
   };

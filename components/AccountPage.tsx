@@ -57,7 +57,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-12 md:py-20 animate-fade-in">
-      <div className={`rounded-[48px] p-8 md:p-16 mb-12 relative overflow-hidden group shadow-2xl transition-all duration-700 ${user.isLumiAscend ? 'bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-900' : 'bg-slate-900'} text-white`}>
+      <div className={`rounded-[48px] p-8 md:p-16 mb-12 relative overflow-hidden group shadow-2xl transition-all duration-300 ${user.isLumiAscend ? 'bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-900' : 'bg-slate-900'} text-white`}>
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -206,7 +206,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
                           const isActive = stepIndex <= currentIndex;
                           return (
                             <div key={s} className="flex flex-col items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full transition-all duration-500 ${isActive ? 'bg-indigo-600 scale-125 shadow-[0_0_10px_rgba(79,70,229,0.5)]' : 'bg-slate-200'}`}></div>
+                              <div className={`w-3 h-3 rounded-full transition-all duration-200 ${isActive ? 'bg-indigo-600 scale-125 shadow-[0_0_10px_rgba(79,70,229,0.5)]' : 'bg-slate-200'}`}></div>
                               <span className={`text-[8px] font-black uppercase tracking-tighter ${isActive ? 'text-indigo-600' : 'text-slate-300'}`}>{s}</span>
                             </div>
                           );
@@ -214,7 +214,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
                       </div>
                       <div className="h-1 bg-slate-100 rounded-full relative">
                         <div 
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-1000" 
+                          className="h-full bg-indigo-600 rounded-full transition-all duration-500" 
                           style={{ width: `${(Math.max(0, ['pending', 'processing', 'shipped', 'delivered'].indexOf(order.status)) / 3) * 100}%` }}
                         ></div>
                       </div>

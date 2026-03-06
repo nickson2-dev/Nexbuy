@@ -37,6 +37,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
     activeOrders: 0,
     growthRate: 0
   });
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
 
   const loadAdminData = async () => {
     setLoading(true);
@@ -263,7 +265,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   {pendingSellers.map(u => (
-                    <div key={u.id} className="group bg-white p-10 rounded-[56px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
+                    <div key={u.id} className="group bg-white p-10 rounded-[56px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-200">
                       <div className="flex items-center gap-6 mb-10">
                         <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[32px] flex items-center justify-center font-black text-3xl group-hover:scale-110 transition-transform">
                           {(u.name || 'U').charAt(0)}
@@ -405,7 +407,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                           </div>
                           <div>
                             <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight italic">{product.name}</h3>
-                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] mt-1">{formatPrice(product.price)} — {product.category}</p>
+                            <p className="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] mt-1">
+                              {formatPrice(product.price)} — {product.category}
+                              {product.sector === 'art' && <span className="ml-2 text-[#00ff00]">[ART SECTOR]</span>}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-10 text-right">
@@ -413,8 +418,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock</p>
                               <p className="text-sm font-black text-slate-900">{product.stock} Units</p>
                            </div>
-                           <button className="p-3 bg-slate-50 text-slate-300 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm">
+                           <button 
+                             onClick={() => setEditingProduct(product)}
+                             className="p-3 bg-slate-50 text-slate-300 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm"
+                           >
                               <Edit3 size={18} />
+                           </button>
+                           <button 
+                             onClick={() => onDelete(product.id)}
+                             className="p-3 bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-white rounded-xl transition-all shadow-sm"
+                           >
+                              <Trash2 size={18} />
                            </button>
                         </div>
                       </div>
@@ -524,6 +538,65 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
             </div>
           )}
         </>
+      )}
+      {editingProduct && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setEditingProduct(null)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-[40px] p-10 shadow-2xl animate-scale-in">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black uppercase italic">Edit Asset Matrix</h3>
+              <button onClick={() => setEditingProduct(null)} className="p-2 text-slate-400 hover:text-red-500"><X size={24} /></button>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asset Name</label>
+                <input 
+                  type="text" 
+                  value={editingProduct.name}
+                  onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price</label>
+                  <input 
+                    type="number" 
+                    value={editingProduct.price}
+                    onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock</label>
+                  <input 
+                    type="number" 
+                    value={editingProduct.stock}
+                    onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value)})}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sector</label>
+                  <select 
+                    value={editingProduct.sector || 'tech'}
+                    onChange={(e) => setEditingProduct({...editingProduct, sector: e.target.value as 'tech' | 'art'})}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black"
+                  >
+                    <option value="tech">Tech</option>
+                    <option value="art">Art (Professional Showcase)</option>
+                  </select>
+                </div>
+              </div>
+              <button 
+                onClick={() => { onSave(editingProduct); setEditingProduct(null); }}
+                className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-600 transition-all shadow-xl"
+              >
+                Commit Changes
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

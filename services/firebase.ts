@@ -7,7 +7,8 @@ import {
   signOut as firebaseSignOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { getDatabase, ref, get, set, push, onValue, Database, query, orderByChild, equalTo, remove } from "firebase/database";
 import { Order, AnalyticsData, User, Product } from "../types";
@@ -88,6 +89,10 @@ export const signIn = async (email: string, pass: string) => {
   return await getUserProfile(result.user.uid);
 };
 
+export const resetPassword = async (email: string) => {
+  await sendPasswordResetEmail(auth, email);
+};
+
 export const signOut = async () => {
   await firebaseSignOut(auth);
   localStorage.removeItem('nexbuy_session');
@@ -123,10 +128,11 @@ export const getUserProfile = async (uid: string): Promise<User | null> => {
 
 export const applyAsSeller = async (uid: string, storeName: string, storeDescription: string) => {
   if (!db || !uid || uid === 'undefined') {
-    console.error("applyAsSeller: Invalid UID provided", uid);
+    console.error("applyAsSeller: Invalid UID or DB not initialized", { uid, db: !!db });
     return false;
   }
   try {
+    console.log(`Applying as seller for UID: ${uid}, Store: ${storeName}`);
     const userRef = ref(db, `users/${uid}`);
     const snapshot = await get(userRef);
     const existing = snapshot.exists() ? snapshot.val() : {};
@@ -136,13 +142,15 @@ export const applyAsSeller = async (uid: string, storeName: string, storeDescrip
       id: uid,
       sellerStatus: 'pending',
       storeName,
-      storeDescription
+      storeDescription,
+      timestamp: Date.now()
     });
+    console.log("Seller application submitted successfully");
     return true;
   } catch (e) {
     console.error("applyAsSeller failed:", e);
+    return false;
   }
-  return false;
 };
 
 export const fetchPendingSellers = async (): Promise<User[]> => {
@@ -301,16 +309,86 @@ export const refreshSellerBadge = async (uid: string) => {
   }
 };
 
-export const fetchAllSellerProducts = async (): Promise<Product[]> => {
-  if (!db) return [];
+export const fetchAllProducts = async (): Promise<Product[]> => {
+  if (!db) {
+    console.error("fetchAllProducts: Database not initialized");
+    return [];
+  }
   try {
     const productsRef = ref(db, 'seller_products');
     const snapshot = await get(productsRef);
-    if (!snapshot.exists()) return [];
-    return Object.values(snapshot.val()) as Product[];
+    if (!snapshot.exists()) {
+      console.log("fetchAllProducts: No products found in DB");
+      return [];
+    }
+    const data = snapshot.val();
+    console.log("fetchAllProducts: Successfully fetched products", Object.keys(data).length);
+    return Object.values(data) as Product[];
   } catch (e) {
-    console.error("fetchAllSellerProducts failed:", e);
+    console.error("fetchAllProducts failed:", e);
     return [];
+  }
+};
+
+export const listenToProducts = (callback: (products: Product[]) => void) => {
+  if (!db) {
+    console.error("Nexus: Database not initialized");
+    return () => {};
+  }
+  try {
+    console.log("Nexus: Initializing real-time product stream...");
+    
+    // Check both 'seller_products' and 'products' paths
+    const paths = ['seller_products', 'products'];
+    const unsubscribes: (() => void)[] = [];
+
+    paths.forEach(path => {
+      const productsRef = ref(db, path);
+      const unsub = onValue(productsRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const productsList = Object.entries(data).map(([id, val]: [string, any]) => ({
+            ...val,
+            id: val.id || id // Ensure ID is present
+          })) as Product[];
+          console.log(`Nexus: Received ${productsList.length} products from Firebase path '${path}'`);
+          callback(productsList);
+        } else {
+          console.log(`Nexus: Path '${path}' is empty or not found`);
+        }
+      }, (error) => {
+        console.error(`Nexus: Error listening to path '${path}':`, error);
+      });
+      unsubscribes.push(unsub);
+    });
+
+    return () => unsubscribes.forEach(u => u());
+  } catch (e) {
+    console.error("Nexus: Product stream setup failed:", e);
+    return () => {};
+  }
+};
+
+export const seedProducts = async (products: Product[]) => {
+  if (!db) {
+    console.error("seedProducts: Database not initialized");
+    return;
+  }
+  try {
+    const productsRef = ref(db, 'seller_products');
+    const snapshot = await get(productsRef);
+    if (!snapshot.exists()) {
+      console.log("seedProducts: DB empty, seeding initial products...");
+      for (const product of products) {
+        const productRef = ref(db, `seller_products/${product.id}`);
+        await set(productRef, product);
+      }
+      console.log("seedProducts: Products seeded successfully");
+    } else {
+      console.log("seedProducts: Products already exist in DB, skipping seed");
+    }
+  } catch (e) {
+    console.error("seedProducts failed (likely permission denied for guest):", e.message);
   }
 };
 

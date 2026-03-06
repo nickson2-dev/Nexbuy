@@ -1,0 +1,31 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin')"
+      }
+    },
+    "seller_products": {
+      ".read": "true",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'seller' || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+      ".indexOn": ["sellerId", "category", "price", "rating"]
+    },
+    "orders": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["userId", "timestamp"]
+    },
+    "notifications": {
+      ".read": "true",
+      ".write": "auth != null",
+      ".indexOn": ["timestamp"]
+    },
+    "shipping_rates": {
+      ".read": "true",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'"
+    }
+  }
+}

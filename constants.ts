@@ -85,6 +85,50 @@ export const PRODUCTS: Product[] = [
     description: 'Peace of mind on every drive. Night vision, GPS tracking, and instant mobile backup.',
     xpGain: 120,
     specs: { 'Video': '4K @ 30FPS', 'Sensor': 'Sony STARVIS', 'Storage': 'Up to 256GB' }
+  },
+  {
+    id: 'art1',
+    name: 'Neon Cyberpunk Glitch',
+    price: 450.00,
+    costPrice: 0,
+    stock: 1,
+    category: 'Digital Art',
+    sector: 'art',
+    image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=800',
+    rating: 5.0,
+    description: 'A high-voltage digital piece exploring the intersection of human consciousness and machine logic. Limited edition 1/1.',
+    isNew: true,
+    xpGain: 500,
+    sellerName: 'GlitchMaster'
+  },
+  {
+    id: 'art2',
+    name: 'Brutalist Concrete Dreams',
+    price: 299.00,
+    costPrice: 0,
+    stock: 5,
+    category: 'Physical Print',
+    sector: 'art',
+    image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800',
+    rating: 4.8,
+    description: 'A minimalist exploration of urban decay and architectural strength. Printed on high-grade archival paper.',
+    xpGain: 300,
+    sellerName: 'UrbanGhost'
+  },
+  {
+    id: 'art3',
+    name: 'Urban Masterpiece #42',
+    price: 1200.00,
+    costPrice: 0,
+    stock: 1,
+    category: 'Graffiti',
+    sector: 'art',
+    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=800',
+    rating: 4.9,
+    description: 'Raw street energy captured on canvas. This piece was originally a mural in the undercity of Neo-Tokyo.',
+    isNew: true,
+    xpGain: 1000,
+    sellerName: 'VandalX'
   }
 ];
 
