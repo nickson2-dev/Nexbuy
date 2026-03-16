@@ -4,7 +4,7 @@ import { Product, Reward } from './types';
 export const PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Nexbuy Crystal HD Projector',
+    name: 'Nexota Crystal HD Projector',
     price: 189.99,
     costPrice: 110.00,
     stock: 50,
@@ -45,7 +45,7 @@ export const PRODUCTS: Product[] = [
     description: 'Sync your lights to your screen or music. 16 million colors with smart app control.',
     isNew: true,
     xpGain: 30,
-    specs: { 'Colors': '16.8 Million', 'App': 'Nexbuy Home', 'Sync': 'Audio Reactive' }
+    specs: { 'Colors': '16.8 Million', 'App': 'Nexota Home', 'Sync': 'Audio Reactive' }
   },
   {
     id: 'p4',
@@ -58,7 +58,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     description: 'Ultra-responsive wireless mechanical keyboard. Hot-swappable switches and PBT keycaps.',
     xpGain: 80,
-    specs: { 'Switches': 'Nexbuy Brown (Tactile)', 'Battery': 'Up to 200hrs', 'Layout': '75% Compact' }
+    specs: { 'Switches': 'Nexota Brown (Tactile)', 'Battery': 'Up to 200hrs', 'Layout': '75% Compact' }
   },
   {
     id: 'p5',
@@ -135,5 +135,5 @@ export const PRODUCTS: Product[] = [
 export const REWARDS: Reward[] = [
   { id: 'r1', title: '15% Discount Code', cost: 500, type: 'discount', icon: '🎟️' },
   { id: 'r2', title: 'Free Express Shipping Upgrade', cost: 300, type: 'shipping', icon: '✈️' },
-  { id: 'r3', title: 'Nexbuy Brand Sticker Pack', cost: 1000, type: 'merch', icon: '🎁' },
+  { id: 'r3', title: 'Nexota Brand Sticker Pack', cost: 1000, type: 'merch', icon: '🎁' },
 ];

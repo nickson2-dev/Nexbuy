@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Product, Order, AnalyticsData, User } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Product, Order, AnalyticsData, User, SupportMessage } from '../types';
 import { 
   fetchOrders, updateOrderStatus, calculateAnalytics, 
   fetchPendingSellers, approveSeller, rejectSeller,
-  fetchShippingRates, updateShippingRate, deleteShippingRate
+  fetchShippingRates, updateShippingRate, deleteShippingRate,
+  listenToSupportMessages, sendSupportMessage, updateMessageStatus
 } from '../services/firebase';
 import SectionLoader from './SectionLoader';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { 
   X, Edit3, DollarSign, TrendingUp, ShoppingBag, 
   BarChart3, ArrowUpRight, LayoutDashboard, Package, 
-  CheckCircle2, XCircle, UserCheck, ShieldCheck, Activity, Globe, Users, Zap, Clock, ShieldAlert, Truck, Plus, Trash2, MapPin
+  CheckCircle2, XCircle, UserCheck, ShieldCheck, Activity, Globe, Users, Zap, Clock, ShieldAlert, Truck, Plus, Trash2, MapPin, MessageSquare, Send
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -22,10 +23,13 @@ interface AdminPanelProps {
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onClose }) => {
   const { formatPrice } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'applications' | 'logistics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'applications' | 'logistics' | 'support'>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingSellers, setPendingSellers] = useState<User[]>([]);
   const [shippingRates, setShippingRates] = useState<Record<string, number>>({});
+  const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
+  const [selectedUserChat, setSelectedUserChat] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
   const [newDistrict, setNewDistrict] = useState('');
   const [newCost, setNewCost] = useState('');
   const [liveTraffic, setLiveTraffic] = useState(420);
@@ -38,7 +42,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
     growthRate: 0
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadAdminData = async () => {
     setLoading(true);
@@ -56,7 +60,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
       setShippingRates(fetchedRates);
     } catch (e: any) {
       console.error("Admin data load error:", e);
-      setError("Unable to sync with Nexbuy Central. Please verify database security permissions.");
+      setError("Unable to sync with Nexota Central. Please verify database security permissions.");
     } finally {
       setLoading(false);
     }
@@ -64,11 +68,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
 
   useEffect(() => {
     loadAdminData();
+    const unsubscribeSupport = listenToSupportMessages((messages) => {
+      setSupportMessages(messages);
+    });
+
     const interval = setInterval(() => {
       setLiveTraffic(prev => Math.max(100, prev + Math.floor(Math.random() * 21) - 10));
     }, 3000);
-    return () => clearInterval(interval);
+
+    return () => {
+      unsubscribeSupport();
+      clearInterval(interval);
+    };
   }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [selectedUserChat, supportMessages]);
 
   const handleStatusChange = async (orderId: string, status: Order['status']) => {
     if (await updateOrderStatus(orderId, status)) {
@@ -108,12 +126,37 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
     }
   };
 
+  const handleSendReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyText.trim() || !selectedUserChat) return;
+
+    const lastMsg = supportMessages.find(m => m.userId === selectedUserChat);
+    if (!lastMsg) return;
+
+    await sendSupportMessage({
+      userId: selectedUserChat,
+      userName: lastMsg.userName,
+      userEmail: lastMsg.userEmail,
+      message: replyText.trim(),
+      isAdmin: true,
+    });
+    setReplyText('');
+  };
+
+  const unreadMessagesCount = supportMessages.filter(m => m.status === 'unread' && !m.isAdmin).length;
+  const userChats = Array.from(new Set(supportMessages.map(m => m.userId))).map(userId => {
+    const userMsgs = supportMessages.filter(m => m.userId === userId);
+    const lastMsg = userMsgs[userMsgs.length - 1];
+    const unreadCount = userMsgs.filter(m => m.status === 'unread' && !m.isAdmin).length;
+    return { userId, lastMsg, unreadCount };
+  });
+
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10 animate-fade-in">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10 animate-fade-in cyber-grid min-h-screen">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 flex items-center gap-4 italic uppercase">
-            <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center italic shadow-xl shadow-indigo-200">N</div>
+          <h1 className="text-4xl font-black text-slate-900 flex items-center gap-4 italic uppercase glitch">
+            <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center italic shadow-xl shadow-indigo-200 nexus-pulse">N</div>
             Nexus Command
           </h1>
           <p className="text-slate-500 font-medium ml-16 mt-[-8px]">Global Ecosystem Intelligence & Governance</p>
@@ -121,7 +164,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
         
         <div className="w-full lg:w-auto overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
           <div className="flex bg-slate-100 p-1.5 rounded-[24px] border border-slate-200 shadow-inner min-w-max lg:min-w-0">
-            {(['overview', 'products', 'orders', 'applications', 'logistics'] as const).map(tab => (
+            {(['overview', 'products', 'orders', 'applications', 'logistics', 'support'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -132,6 +175,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                 {tab === 'applications' && pendingSellers.length > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-indigo-600 text-white text-[9px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
                     {pendingSellers.length}
+                  </span>
+                )}
+                {tab === 'support' && unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white text-[9px] flex items-center justify-center rounded-full animate-pulse border-2 border-white">
+                    {unreadMessagesCount}
                   </span>
                 )}
                 {tab}
@@ -157,7 +205,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
           {activeTab === 'overview' && (
             <div className="space-y-10">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all hover:neon-glow">
                   <div className="flex justify-between items-start mb-6">
                     <div className="p-4 bg-indigo-50 text-indigo-600 rounded-3xl group-hover:scale-110 transition-transform"><DollarSign size={24} /></div>
                     <div className="flex items-center gap-1 text-green-500 text-[10px] font-black bg-green-50 px-3 py-1.5 rounded-full uppercase tracking-widest">
@@ -168,7 +216,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                   <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(analytics.totalRevenue)}</p>
                 </div>
                 
-                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all">
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all hover:neon-glow">
                   <div className="flex justify-between items-start mb-6">
                     <div className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl group-hover:scale-110 transition-transform"><TrendingUp size={24} /></div>
                     <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest">
@@ -179,7 +227,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                   <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(analytics.totalProfit)}</p>
                 </div>
 
-                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-orange-200 transition-all">
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-orange-200 transition-all hover:neon-glow">
                   <div className="flex justify-between items-start mb-6">
                     <div className="p-4 bg-orange-50 text-orange-600 rounded-3xl group-hover:scale-110 transition-transform"><ShoppingBag size={24} /></div>
                   </div>
@@ -497,7 +545,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                         <tr key={order.id} className="hover:bg-slate-50 transition-all group">
                           <td className="px-10 py-8">
                             <span className="text-sm font-black text-slate-900 font-mono tracking-tighter">
-                                NEX-{order.id.toString().slice(-8).toUpperCase()}
+                                NX-{order.id.toString().slice(-8).toUpperCase()}
                             </span>
                           </td>
                           <td className="px-10 py-8">
@@ -534,6 +582,132 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ products, onSave, onDelete, onC
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'support' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 h-[700px] animate-slide-up">
+              <div className="lg:col-span-1 bg-white rounded-[48px] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+                <div className="p-8 bg-slate-50 border-b border-slate-100">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Active Channels</h3>
+                </div>
+                <div className="flex-grow overflow-y-auto divide-y divide-slate-50">
+                  {userChats.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 italic text-sm">No active support protocols.</div>
+                  ) : (
+                    userChats.map(chat => (
+                      <button 
+                        key={chat.userId}
+                        onClick={() => {
+                          setSelectedUserChat(chat.userId);
+                          // Mark as read
+                          supportMessages
+                            .filter(m => m.userId === chat.userId && m.status === 'unread' && !m.isAdmin)
+                            .forEach(m => updateMessageStatus(m.id, 'read'));
+                        }}
+                        className={`w-full p-6 text-left hover:bg-slate-50 transition-all flex items-center gap-4 ${selectedUserChat === chat.userId ? 'bg-indigo-50/50 border-r-4 border-indigo-600' : ''}`}
+                      >
+                        <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 font-black relative">
+                          <UserCheck size={20} />
+                          {chat.unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-[9px] flex items-center justify-center rounded-full border-2 border-white">
+                              {chat.unreadCount}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <h4 className="text-sm font-black text-slate-900 truncate uppercase italic">{chat.lastMsg.userName}</h4>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">
+                              {new Date(chat.lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 truncate font-medium">{chat.lastMsg.message}</p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:col-span-2 bg-slate-900 rounded-[48px] shadow-2xl border border-white/5 flex flex-col overflow-hidden">
+                {selectedUserChat ? (
+                  <>
+                    <div className="p-8 bg-slate-800/50 border-b border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center">
+                          <MessageSquare size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-black text-white uppercase italic tracking-tight">
+                            {supportMessages.find(m => m.userId === selectedUserChat)?.userName}
+                          </h3>
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                            {supportMessages.find(m => m.userId === selectedUserChat)?.userEmail}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div 
+                      ref={scrollRef}
+                      className="flex-grow overflow-y-auto p-8 space-y-4 no-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent"
+                    >
+                      {supportMessages.filter(m => m.userId === selectedUserChat).map(msg => (
+                        <div 
+                          key={msg.id} 
+                          className={`flex ${msg.isAdmin ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                        >
+                          <div className={`max-w-[70%] p-5 rounded-[32px] text-sm ${
+                            msg.isAdmin 
+                            ? 'bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-600/20' 
+                            : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'
+                          }`}>
+                            <p className="font-medium leading-relaxed">{msg.message}</p>
+                            <div className="flex items-center justify-between mt-3 opacity-50">
+                              <span className="text-[9px] font-black uppercase tracking-widest">
+                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {msg.isAdmin && (
+                                <span className="text-[9px] font-black uppercase tracking-widest">Sent by Admin</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-8 bg-slate-800/50 border-t border-white/5">
+                      <form onSubmit={handleSendReply} className="flex gap-4">
+                        <input 
+                          type="text" 
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Type your response to the user..."
+                          className="flex-grow bg-slate-900 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                        />
+                        <button 
+                          type="submit"
+                          disabled={!replyText.trim()}
+                          className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center hover:bg-indigo-50 transition-all active:scale-90 disabled:opacity-50 disabled:scale-100 shadow-lg shadow-indigo-600/20"
+                        >
+                          <Send size={24} />
+                        </button>
+                      </form>
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-20 space-y-6 opacity-30">
+                    <div className="w-24 h-24 bg-slate-800 rounded-[40px] flex items-center justify-center">
+                      <MessageSquare size={48} className="text-slate-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-slate-400 uppercase italic">Select a Protocol</h3>
+                      <p className="text-slate-500 text-sm font-medium mt-2">Choose a communication channel from the left to begin governance interaction.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

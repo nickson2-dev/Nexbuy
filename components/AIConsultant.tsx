@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Sparkles, X, User as UserIcon, GripVertical, Bot } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, X, User as UserIcon, GripVertical, Bot, Crown } from 'lucide-react';
 import { getShoppingAdvice } from '../services/geminiService';
-import { Product } from '../types';
+import { Product, User } from '../types';
 
 interface AIConsultantProps {
   onAddToCart: (product: Product) => void;
   products: Product[];
+  user: User;
 }
 
-const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart, products }) => {
+const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart, products, user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
-    { role: 'ai', text: 'Hi! I\'m Nexa, your personal shopping assistant. Looking for something specific today?' }
+    { role: 'ai', text: user.isLumiAscend 
+      ? `Welcome back, ${user.name}. I am your dedicated Nexota Concierge. How may I assist with your high-end acquisitions today?` 
+      : 'Hi! I\'m Nexa, your personal shopping assistant. Looking for something specific today?' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -108,19 +111,21 @@ const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart, products }) =>
         <div className="w-[calc(100vw-3rem)] sm:w-96 h-[500px] max-h-[70vh] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-100 flex flex-col overflow-hidden animate-slide-up">
           {/* Header */}
           <div 
-            className="p-4 bg-indigo-600 text-white flex items-center justify-between shrink-0 cursor-move"
+            className={`p-4 ${user.isLumiAscend ? 'bg-slate-900 border-b border-yellow-400/20' : 'bg-indigo-600'} text-white flex items-center justify-between shrink-0 cursor-move transition-colors duration-500`}
             onMouseDown={handleMouseDown}
             onTouchStart={handleMouseDown}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white text-indigo-600 rounded-xl flex items-center justify-center font-black italic shadow-lg">
-                NB
+              <div className={`w-10 h-10 ${user.isLumiAscend ? 'bg-gradient-to-br from-yellow-400 to-amber-600' : 'bg-white text-indigo-600'} rounded-xl flex items-center justify-center font-black italic shadow-lg`}>
+                {user.isLumiAscend ? <Crown size={20} className="text-white fill-current" /> : 'NX'}
               </div>
               <div>
-                <h4 className="font-bold">Nexa AI</h4>
+                <h4 className="font-bold">{user.isLumiAscend ? 'Nexota Concierge' : 'Nexa AI'}</h4>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  <span className="text-[10px] text-indigo-100 uppercase tracking-widest font-bold">Protocol Active</span>
+                  <span className={`w-2 h-2 ${user.isLumiAscend ? 'bg-yellow-400' : 'bg-green-400'} rounded-full animate-pulse`}></span>
+                  <span className={`text-[10px] ${user.isLumiAscend ? 'text-amber-200' : 'text-indigo-100'} uppercase tracking-widest font-bold`}>
+                    {user.isLumiAscend ? 'Premium Protocol' : 'Protocol Active'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -192,7 +197,7 @@ const AIConsultant: React.FC<AIConsultantProps> = ({ onAddToCart, products }) =>
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500"></span>
           </div>
-          <div className="font-black text-2xl italic">NB</div>
+          <div className="font-black text-2xl italic">NX</div>
           {!hasMoved.current && !isOpen && (
             <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 border border-white/10">
               <Sparkles size={10} className="text-indigo-400" /> Nexa Assistant

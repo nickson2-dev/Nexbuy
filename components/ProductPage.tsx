@@ -21,7 +21,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
     const prevTitle = document.title;
     const prevDesc = document.querySelector('meta[name="description"]')?.getAttribute('content');
     
-    document.title = `${product.name} | Nexbuy Premium Tech`;
+    document.title = `${product.name} | Nexota Premium Tech`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', product.description.slice(0, 160));
@@ -57,7 +57,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
             />
             <div className="absolute top-4 md:top-6 left-4 md:left-6 z-10">
               <span className="bg-slate-900/80 backdrop-blur-md text-indigo-400 text-[8px] md:text-[10px] font-black px-3 md:px-4 py-1.5 md:py-2 rounded-full uppercase tracking-[0.2em] border border-white/10">
-                Subject: NEX-{product.id.toUpperCase()}
+                Subject: NX-{product.id.toUpperCase()}
               </span>
             </div>
             
@@ -81,7 +81,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
               <div className="flex items-start gap-4 p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-3xl">
                 <ShieldCheck className="text-indigo-600 shrink-0" size={20} md:size={24} />
                 <div>
-                  <h4 className="font-bold text-slate-900 text-xs md:text-sm">Nexbuy Protection</h4>
+                  <h4 className="font-bold text-slate-900 text-xs md:text-sm">Nexota Protection</h4>
                   <p className="text-[10px] md:text-xs text-slate-400 mt-1">2-Year global warranty included.</p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4">
               <Info className="text-slate-400" size={20} />
               <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase tracking-wide">
-                Nexbuy items are limited run and curated for quality. Pricing includes global duties and white-glove logistics.
+                Nexota items are limited run and curated for quality. Pricing includes global duties and white-glove logistics.
               </p>
             </div>
           </div>

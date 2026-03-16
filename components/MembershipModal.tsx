@@ -59,7 +59,7 @@ const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClose, onUp
                  <Star size={18} />
               </div>
               <h4 className="font-black text-xs md:text-sm text-white uppercase tracking-tighter">Ascend Rewards</h4>
-              <p className="text-[10px] md:text-xs text-slate-500 font-medium">Redeem points for premium shipping upgrades and exclusive Nexbuy brand merchandise.</p>
+              <p className="text-[10px] md:text-xs text-slate-500 font-medium">Redeem points for premium shipping upgrades and exclusive Nexota brand merchandise.</p>
             </div>
 
             <div className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-[24px] md:rounded-[32px] space-y-2 md:space-y-3">

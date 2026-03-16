@@ -24,7 +24,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
 
       <div className="mb-16">
         <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic mb-4">Core Settings</h1>
-        <p className="text-slate-500 font-medium">Customize your Nexbuy interface and localization preferences.</p>
+        <p className="text-slate-500 font-medium">Customize your Nexota interface and localization preferences.</p>
       </div>
 
       <div className="space-y-10">
@@ -121,7 +121,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
-                <p className="text-sm font-bold mb-1">Nexbuy OS v2.8.4</p>
+                <p className="text-sm font-bold mb-1">Nexota OS v2.8.4</p>
                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Build ID: 8820-X-LABS</p>
              </div>
              <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
@@ -133,7 +133,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
           <div className="flex items-center gap-4 p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-3xl">
             <Info className="text-indigo-400 shrink-0" size={20} />
             <p className="text-[10px] text-indigo-300 font-bold leading-relaxed uppercase tracking-wide">
-              Settings are synchronized across your Nexbuy Neural Link. Some features may require an active merchant session.
+              Settings are synchronized across your Nexota Neural Link. Some features may require an active merchant session.
             </p>
           </div>
         </div>

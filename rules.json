@@ -1,16 +1,20 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
     "users": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')",
       "$uid": {
-        ".read": "auth != null",
-        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin')"
+        ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')"
       }
     },
     "seller_products": {
       ".read": "true",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'seller' || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'seller' || root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')",
+      ".indexOn": ["sellerId", "category", "price", "rating"]
+    },
+    "products": {
+      ".read": "true",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'seller' || root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')",
       ".indexOn": ["sellerId", "category", "price", "rating"]
     },
     "orders": {
@@ -25,7 +29,12 @@
     },
     "shipping_rates": {
       ".read": "true",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'"
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || auth.token.email == 'ematannick@gmail.com')"
+    },
+    "support_messages": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["userId", "timestamp"]
     }
   }
 }

@@ -91,3 +91,15 @@ export interface AnalyticsData {
   activeOrders: number;
   growthRate: number;
 }
+
+export interface SupportMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  message: string;
+  timestamp: number;
+  status: 'unread' | 'read' | 'replied';
+  isAdmin: boolean;
+  replyTo?: string; // ID of the message being replied to
+}

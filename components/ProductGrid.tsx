@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Product } from '../types';
-import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store, ShieldCheck, X, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Star, Heart, Truck, Eye, Zap, AlertCircle, BarChart3, ChevronDown, Store, ShieldCheck, X, MessageSquare, Crown } from 'lucide-react';
 import { useCurrency } from '../src/context/CurrencyContext';
 
 interface ProductGridProps {
@@ -156,9 +156,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             >
               {/* Status Badges */}
               <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                {product.isExclusive && (
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-400 to-amber-600 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-[0_0_20px_rgba(251,191,36,0.4)] border border-yellow-300/30">
+                    <Crown size={10} className="fill-current" />
+                    Lumi Exclusive
+                  </div>
+                )}
                 {product.isNew && (
-                  <span className="bg-indigo-600 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
-                    Hot Seller
+                  <span className="bg-white/90 backdrop-blur-md text-slate-900 text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg border border-slate-100">
+                    Limited Edition
                   </span>
                 )}
                 <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md text-indigo-400 text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg border border-white/10">
@@ -190,7 +196,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 className="relative aspect-square overflow-hidden bg-slate-50 cursor-pointer"
                 onClick={() => onProductClick?.(product)}
               >
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <img 
+                  src={product.image.includes('unsplash.com') ? `${product.image}&w=600` : product.image} 
+                  alt={product.name} 
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
                 <button 

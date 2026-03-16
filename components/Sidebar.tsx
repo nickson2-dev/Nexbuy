@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
       <nav className="flex-grow space-y-2 overflow-y-auto no-scrollbar">
         <NavItem icon={Home} label="Storefront" view="home" active={currentView === 'home'} />
         <NavItem icon={Palette} label="Art Sector" view="art" active={currentView === 'art'} />
-        <NavItem icon={FlaskConical} label="Nexbuy Labs" view="experience" active={currentView === 'experience'} badge />
+        <NavItem icon={FlaskConical} label="Nexota Labs" view="experience" active={currentView === 'experience'} badge />
         <NavItem icon={Heart} label="Wishlist" view="wishlist" active={currentView === 'wishlist'} />
         
         <div className="pt-6 pb-2">

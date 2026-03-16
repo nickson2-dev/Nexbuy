@@ -8,10 +8,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { getDatabase, ref, get, set, push, onValue, Database, query, orderByChild, equalTo, remove } from "firebase/database";
-import { Order, AnalyticsData, User, Product } from "../types";
+import { Order, AnalyticsData, User, Product, SupportMessage } from "../types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDxwOasJWzR6uU9aWJ45u6WUgZRAMP3NdA",
@@ -93,9 +95,33 @@ export const resetPassword = async (email: string) => {
   await sendPasswordResetEmail(auth, email);
 };
 
+export const signInWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const firebaseUser = result.user;
+  
+  const profile = await getUserProfile(firebaseUser.uid);
+  if (!profile) {
+    const userData: User = {
+      id: firebaseUser.uid,
+      email: firebaseUser.email || '',
+      name: firebaseUser.displayName || 'User',
+      points: 100,
+      level: 1,
+      streak: 1,
+      isLoggedIn: true,
+      role: firebaseUser.email?.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'customer',
+      sellerStatus: 'none'
+    };
+    await syncUserProfile(firebaseUser.uid, userData);
+    return userData;
+  }
+  return profile;
+};
+
 export const signOut = async () => {
   await firebaseSignOut(auth);
-  localStorage.removeItem('nexbuy_session');
+  localStorage.removeItem('nexota_session');
 };
 
 export const syncUserProfile = async (uid: string, data: Partial<User>) => {
@@ -231,7 +257,9 @@ export const approveSeller = async (uid: string) => {
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const existing = snapshot.val();
-      await set(userRef, { ...existing, role: 'seller', sellerStatus: 'approved' });
+      // Preserve admin role if they already have it, otherwise promote to seller
+      const newRole = existing.role === 'admin' ? 'admin' : 'seller';
+      await set(userRef, { ...existing, role: newRole, sellerStatus: 'approved' });
       return true;
     }
   } catch (e) {
@@ -338,8 +366,8 @@ export const listenToProducts = (callback: (products: Product[]) => void) => {
   try {
     console.log("Nexus: Initializing real-time product stream...");
     
-    // Check both 'seller_products' and 'products' paths
-    const paths = ['seller_products', 'products'];
+    // Use 'seller_products' as the primary path
+    const paths = ['seller_products'];
     const unsubscribes: (() => void)[] = [];
 
     paths.forEach(path => {
@@ -550,6 +578,64 @@ export const deleteShippingRate = async (district: string) => {
     return true;
   } catch (e) {
     console.error("deleteShippingRate failed:", e);
+    return false;
+  }
+};
+
+// Support Messaging
+export const sendSupportMessage = async (messageData: Omit<SupportMessage, 'id' | 'timestamp' | 'status'>) => {
+  if (!db) return null;
+  try {
+    const messagesRef = ref(db, 'support_messages');
+    const newMessageRef = push(messagesRef);
+    const fullMessage: SupportMessage = {
+      ...messageData,
+      id: newMessageRef.key || Date.now().toString(),
+      timestamp: Date.now(),
+      status: 'unread'
+    };
+    await set(newMessageRef, fullMessage);
+    return fullMessage;
+  } catch (e) {
+    console.error("sendSupportMessage failed:", e);
+    return null;
+  }
+};
+
+export const fetchSupportMessages = async (): Promise<SupportMessage[]> => {
+  if (!db) return [];
+  try {
+    const messagesRef = ref(db, 'support_messages');
+    const snapshot = await get(messagesRef);
+    if (!snapshot.exists()) return [];
+    return Object.values(snapshot.val()) as SupportMessage[];
+  } catch (e) {
+    console.error("fetchSupportMessages failed:", e);
+    return [];
+  }
+};
+
+export const listenToSupportMessages = (callback: (messages: SupportMessage[]) => void) => {
+  if (!db) return () => {};
+  const messagesRef = ref(db, 'support_messages');
+  return onValue(messagesRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const messages = Object.values(snapshot.val()) as SupportMessage[];
+      callback(messages.sort((a, b) => a.timestamp - b.timestamp));
+    } else {
+      callback([]);
+    }
+  });
+};
+
+export const updateMessageStatus = async (messageId: string, status: SupportMessage['status']) => {
+  if (!db) return false;
+  try {
+    const statusRef = ref(db, `support_messages/${messageId}/status`);
+    await set(statusRef, status);
+    return true;
+  } catch (e) {
+    console.error("updateMessageStatus failed:", e);
     return false;
   }
 };

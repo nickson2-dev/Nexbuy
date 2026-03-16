@@ -1,30 +1,35 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ProductGrid from './components/ProductGrid';
-import GamificationWidget from './components/GamificationWidget';
-import AIConsultant from './components/AIConsultant';
-import CartModal from './components/CartModal';
-import LoginModal from './components/LoginModal';
-import MembershipModal from './components/MembershipModal';
-import Footer from './components/Footer';
-import WishlistPage from './components/WishlistPage';
-import ProductPage from './components/ProductPage';
-import SettingsPage from './components/SettingsPage';
-import AccountPage from './components/AccountPage';
-import AdminPanel from './components/AdminPanel';
-import SellerPortal from './components/SellerPortal';
-import ExperienceCenter from './components/ExperienceCenter';
-import ArtSector from './components/ArtSector';
 import Sidebar from './components/Sidebar';
 import MobileNavbar from './components/MobileNavbar';
 import MobileSidebar from './components/MobileSidebar';
-import CartToast from './components/CartToast';
 import LoadingScreen from './components/LoadingScreen';
+
+// Lazy load non-critical components
+const WishlistPage = lazy(() => import('./components/WishlistPage'));
+const ProductPage = lazy(() => import('./components/ProductPage'));
+const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const AccountPage = lazy(() => import('./components/AccountPage'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const SellerPortal = lazy(() => import('./components/SellerPortal'));
+const ExperienceCenter = lazy(() => import('./components/ExperienceCenter'));
+const ArtSector = lazy(() => import('./components/ArtSector'));
+const PremiumShowcase = lazy(() => import('./components/PremiumShowcase'));
+const StaticPage = lazy(() => import('./components/StaticPage'));
+const CartModal = lazy(() => import('./components/CartModal'));
+const LoginModal = lazy(() => import('./components/LoginModal'));
+const MembershipModal = lazy(() => import('./components/MembershipModal'));
+const GamificationWidget = lazy(() => import('./components/GamificationWidget'));
+const AIConsultant = lazy(() => import('./components/AIConsultant'));
+const Footer = lazy(() => import('./components/Footer'));
+const CartToast = lazy(() => import('./components/CartToast'));
+
 import { Product, CartItem, User } from './types';
 import { onAuthStateChanged, signOut, listenToNotifications, syncUserProfile, getUserProfile, fetchAllProducts, listenToProducts, seedProducts, updateMembership, updateSellerProduct, deleteSellerProduct } from './services/firebase';
 import { PRODUCTS } from './constants';
-import { Zap, Search } from 'lucide-react';
+import { Zap, Search, Crown, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +149,27 @@ const App: React.FC = () => {
   }, [handlePointsUpdate]);
 
   const handleNavigation = (view: any) => {
+    // Handle category filtering
+    if (typeof view === 'string' && categories.includes(view)) {
+      setActiveCategory(view);
+      setCurrentView('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setIsSearchOpen(false);
+      return;
+    }
+
+    // Handle specific products from footer
+    if (typeof view === 'string') {
+      const productMatch = products.find(p => p.name.toLowerCase().replace(/ /g, '-') === view);
+      if (productMatch) {
+        setSelectedProduct(productMatch);
+        setCurrentView('product');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setIsSearchOpen(false);
+        return;
+      }
+    }
+
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setIsSearchOpen(false);
@@ -160,29 +186,29 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const viewTitles: Record<string, string> = {
-      home: 'Nexbuy | The Future of Tech Curation',
-      wishlist: 'My Wishlist | Nexbuy',
-      account: 'My Account | Nexbuy',
-      seller: 'Seller Portal | Nexbuy Hub',
+      home: 'Nexota | The Future of Tech Curation',
+      wishlist: 'My Wishlist | Nexota',
+      account: 'My Account | Nexota',
+      seller: 'Seller Portal | Nexota Hub',
       admin: 'Nexus Command | Admin Control',
-      experience: 'Nexbuy Labs | Future Tech Experience',
-      art: 'Art Sector | Professional Showcase x Nexbuy',
-      settings: 'Settings | Nexbuy'
+      experience: 'Nexota Labs | Future Tech Experience',
+      art: 'Art Sector | Professional Showcase x Nexota',
+      settings: 'Settings | Nexota'
     };
     
     const viewDescriptions: Record<string, string> = {
-      home: 'Discover Nexbuy, the premier destination for curated high-tech gadgets and premium gear.',
-      wishlist: 'View and manage your saved premium tech gadgets at Nexbuy.',
-      account: 'Manage your Nexbuy profile, points, and citizen status.',
-      seller: 'Access the Nexbuy Seller Portal to manage your premium tech inventory.',
+      home: 'Discover Nexota, the premier destination for curated high-tech gadgets and premium gear.',
+      wishlist: 'View and manage your saved premium tech gadgets at Nexota.',
+      account: 'Manage your Nexota profile, points, and citizen status.',
+      seller: 'Access the Nexota Seller Portal to manage your premium tech inventory.',
       admin: 'Nexus Command Center for global ecosystem governance.',
-      experience: 'Explore the future of tech in the Nexbuy Labs experience center.',
+      experience: 'Explore the future of tech in the Nexota Labs experience center.',
       art: 'Enter the Art Sector, where illegal graphics meet premium tech curation.',
-      settings: 'Configure your Nexbuy interface and account preferences.'
+      settings: 'Configure your Nexota interface and account preferences.'
     };
     
     if (currentView !== 'product') {
-      document.title = viewTitles[currentView] || 'Nexbuy | Premium Tech';
+      document.title = viewTitles[currentView] || 'Nexota | Premium Tech';
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
         metaDesc.setAttribute('content', viewDescriptions[currentView] || 'Premium tech curation and decentralized retail ecosystem.');
@@ -228,7 +254,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fafafa] overflow-x-hidden">
-      <div className="flex flex-grow w-full overflow-x-hidden">
+      <Suspense fallback={<LoadingScreen />}>
+        <div className="flex flex-grow w-full overflow-x-hidden">
         <Sidebar 
           currentView={currentView} 
           onNavigate={handleNavigation} 
@@ -237,7 +264,7 @@ const App: React.FC = () => {
           onLogout={() => { signOut(); handleNavigation('home'); }} 
           onOpenLogin={() => setIsLoginOpen(true)} 
         />
-        <div className="flex-grow flex flex-col min-w-0 pt-16 lg:pt-20">
+        <div className="flex-grow flex flex-col min-w-0 pt-[72px] lg:pt-[88px]">
           <Header 
             currentView={currentView}
             products={products}
@@ -259,11 +286,14 @@ const App: React.FC = () => {
             isCartPulsing={cartPulse} 
           />
           
-          <div className="bg-slate-900 text-white py-2 overflow-hidden border-b border-white/5 shrink-0 w-full sticky top-16 lg:top-20 z-[140]">
-            <div className="flex animate-marquee gap-16 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-              <span className="flex items-center gap-2"><Zap size={12} className="text-indigo-400" /> Rewards Active</span>
-              <span>🔒 Secure Checkout</span>
-              <span>🌍 Premium Tech Curation</span>
+          <div className="bg-slate-900 text-white py-3 overflow-hidden border-b border-white/5 shrink-0 w-full sticky top-[72px] lg:top-[88px] z-[140] backdrop-blur-xl bg-slate-900/90">
+            <div className="flex animate-marquee gap-24 text-[10px] font-black uppercase tracking-[0.3em] whitespace-nowrap items-center">
+              <span className="flex items-center gap-2 text-indigo-400"><Zap size={12} className="fill-current" /> Ecosystem Live</span>
+              <span className="flex items-center gap-2 text-amber-400"><Crown size={12} className="fill-current" /> Lumi Ascend Active</span>
+              <span className="flex items-center gap-2 text-emerald-400"><ShieldCheck size={12} /> Secure Nexus Protocol</span>
+              <span className="flex items-center gap-2 text-slate-400">🌍 Global Logistics Operational</span>
+              <span className="flex items-center gap-2 text-indigo-400"><Zap size={12} className="fill-current" /> Ecosystem Live</span>
+              <span className="flex items-center gap-2 text-amber-400"><Crown size={12} className="fill-current" /> Lumi Ascend Active</span>
             </div>
           </div>
 
@@ -271,6 +301,13 @@ const App: React.FC = () => {
             {currentView === 'home' && (
               <>
                 <Hero onShopNow={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} onLaunchLabs={() => handleNavigation('experience')} isLumiAscend={user.isLumiAscend} onOpenMembership={() => setIsMembershipOpen(true)} />
+                
+                <PremiumShowcase 
+                  products={products} 
+                  onQuickView={openProductPage} 
+                  onOpenMembership={() => setIsMembershipOpen(true)} 
+                />
+
                 <div id="products" className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8">
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">The Collection</h2>
@@ -303,8 +340,15 @@ const App: React.FC = () => {
             {currentView === 'seller' && <SellerPortal user={user} onClose={handleBack} onRefreshUser={refreshUserData} />}
             {currentView === 'experience' && <ExperienceCenter products={products.filter(p => !!p.videoUrl)} onAddToCart={addToCart} onClose={handleBack} />}
             {currentView === 'art' && <ArtSector products={products} user={user} onAddToCart={addToCart} onClose={handleBack} onOpenSeller={() => handleNavigation('seller')} />}
+            {!['home', 'product', 'wishlist', 'settings', 'account', 'admin', 'seller', 'experience', 'art'].includes(currentView) && (
+              <StaticPage 
+                title={currentView.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} 
+                onBack={handleBack} 
+                user={user}
+              />
+            )}
           </main>
-          <Footer />
+          <Footer onNavigate={handleNavigation} />
         </div>
       </div>
       
@@ -333,7 +377,7 @@ const App: React.FC = () => {
                   type="text" 
                   value={searchQuery} 
                   onChange={(e) => setSearchQuery(e.target.value)} 
-                  placeholder="Search Nexbuy..." 
+                  placeholder="Search Nexota..." 
                   className="bg-transparent border-none outline-none w-full text-slate-900 font-bold" 
                 />
               </div>
@@ -442,7 +486,7 @@ const App: React.FC = () => {
 
       <CartToast name={addedToCartToast.name} show={addedToCartToast.show} onOpenCart={() => setIsCartOpen(true)} />
       <GamificationWidget user={user} onDailyClaim={() => handlePointsUpdate(100)} />
-      <AIConsultant onAddToCart={addToCart} products={products} />
+      <AIConsultant onAddToCart={addToCart} products={products} user={user} />
       <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} total={cart.reduce((s, i) => s + (i.price * i.quantity), 0)} onUpdateQuantity={(id, d) => setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + d) } : item))} onRemove={(id) => setCart(prev => prev.filter(i => i.id !== id))} user={user} onClearCart={() => setCart([])} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       <MembershipModal 
@@ -456,6 +500,7 @@ const App: React.FC = () => {
           setIsMembershipOpen(false); 
         }} 
       />
+      </Suspense>
     </div>
   );
 };

@@ -100,7 +100,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                     {categories.slice(1, 5).map(cat => (
                       <button 
                         key={cat}
-                        onClick={() => { /* Filter logic in App */ onClose(); }}
+                        onClick={() => { onNavigate(cat); onClose(); }}
                         className="block text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors py-1"
                       >
                         {cat}
@@ -125,16 +125,20 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 </div>
               </section>
 
-              {/* Nexbuy Services */}
+              {/* Nexota Services */}
               <section>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Nexbuy Services</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Nexota Services</h4>
                 <div className="space-y-2">
                   {[
-                    { icon: ShieldCheck, label: 'Nexbuy Protection', desc: 'Extended warranty' },
-                    { icon: Globe, label: 'Global Logistics', desc: 'Real-time tracking' },
-                    { icon: Tag, label: 'Merchant Guild', desc: 'Seller resources' }
+                    { icon: ShieldCheck, label: 'Nexota Protection', desc: 'Extended warranty', view: 'nexota-protection' },
+                    { icon: Globe, label: 'Global Logistics', desc: 'Real-time tracking', view: 'global-logistics' },
+                    { icon: Tag, label: 'Merchant Guild', desc: 'Seller resources', view: 'seller' }
                   ].map((item, i) => (
-                    <button key={i} className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors text-left group">
+                    <button 
+                      key={i} 
+                      onClick={() => { onNavigate(item.view); onClose(); }}
+                      className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors text-left group"
+                    >
                       <item.icon size={18} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
                       <div>
                         <p className="text-sm font-bold text-slate-700">{item.label}</p>
@@ -159,7 +163,12 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         <p className="text-sm font-bold text-slate-900">English (UK)</p>
                       </div>
                     </div>
-                    <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest px-3 py-1 bg-white rounded-lg border border-slate-100 shadow-sm">Change</button>
+                    <button 
+                      onClick={() => { onNavigate('language-settings'); onClose(); }}
+                      className="text-[10px] font-black text-indigo-600 uppercase tracking-widest px-3 py-1 bg-white rounded-lg border border-slate-100 shadow-sm"
+                    >
+                      Change
+                    </button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -172,7 +181,12 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         <p className="text-sm font-bold text-slate-900">United Kingdom</p>
                       </div>
                     </div>
-                    <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest px-3 py-1 bg-white rounded-lg border border-slate-100 shadow-sm">Change</button>
+                    <button 
+                      onClick={() => { onNavigate('region-settings'); onClose(); }}
+                      className="text-[10px] font-black text-indigo-600 uppercase tracking-widest px-3 py-1 bg-white rounded-lg border border-slate-100 shadow-sm"
+                    >
+                      Change
+                    </button>
                   </div>
                 </div>
               </section>

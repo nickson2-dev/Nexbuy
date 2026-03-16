@@ -32,13 +32,13 @@ const Logo: React.FC<LogoProps> = ({ className = "h-10", showText = true, light 
         </svg>
         
         <div className={`text-3xl font-black tracking-tighter ${textColor} italic`}>
-          NB
+          NX
         </div>
       </div>
       
       {showText && (
         <span className={`text-2xl font-black tracking-tighter ${textColor} uppercase italic`}>
-          NEXBUY
+          NEXOTA
         </span>
       )}
     </div>

@@ -259,7 +259,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
       <div className="max-w-4xl mx-auto px-4 py-16 md:py-24 animate-fade-in text-center">
         <button onClick={onClose} className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black uppercase text-[10px] tracking-[0.3em] mb-12 transition-all"><ChevronLeft size={16} /> Matrix Return</button>
         <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[32px] flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-indigo-100"><Store size={48} /></div>
-        <h1 className="text-5xl font-black mb-6 uppercase italic tracking-tighter">Nexbuy Merchant <br/>Onboarding</h1>
+        <h1 className="text-5xl font-black mb-6 uppercase italic tracking-tighter">Nexota Merchant <br/>Onboarding</h1>
         
         {user.sellerStatus === 'pending' ? (
           <div className="bg-white p-12 rounded-[56px] border border-slate-100 shadow-sm space-y-6">
@@ -285,7 +285,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                {isApplying ? <ButtonLoader /> : 'Initialize Merchant Request'}
             </button>
             <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-black uppercase tracking-widest">
-               <ShieldCheck size={14} className="text-emerald-500" /> Authorized Nexbuy Logistics Hub
+               <ShieldCheck size={14} className="text-emerald-500" /> Authorized Nexota Logistics Hub
             </div>
           </form>
         )}
@@ -462,7 +462,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                       <div className="h-full bg-emerald-500 w-[92%]" />
                     </div>
                     <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                      Your merchant account is performing in the top 8% of the Nexbuy ecosystem.
+                      Your merchant account is performing in the top 8% of the Nexota ecosystem.
                     </p>
                   </div>
 
@@ -596,7 +596,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                           return (
                             <tr key={o.id} className="hover:bg-slate-50 transition-all">
                                <td className="px-10 py-8">
-                                  <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">NEX-{o.id.slice(-8).toUpperCase()}</p>
+                                  <p className="text-sm font-black text-slate-900 font-mono tracking-tighter">NX-{o.id.slice(-8).toUpperCase()}</p>
                                   <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{new Date(o.timestamp).toLocaleDateString()}</p>
                                </td>
                                <td className="px-10 py-8">
@@ -667,7 +667,7 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                       (editingProduct?.sector === 'art' || newProduct.sector === 'art') ? 'focus:ring-indigo-500' : 'focus:ring-emerald-500'
                     }`}
                  >
-                    <option value="tech">Tech (Nexbuy Standard)</option>
+                    <option value="tech">Tech (Nexota Standard)</option>
                     <option value="art">Art (Professional Showcase)</option>
                  </select>
               </div>

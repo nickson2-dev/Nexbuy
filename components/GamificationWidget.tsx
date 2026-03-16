@@ -36,7 +36,7 @@ const GamificationWidget: React.FC<GamificationWidgetProps> = ({ user, onDailyCl
   };
 
   const handleRedeem = () => {
-    if (promoCode.toUpperCase() === 'NEXBUY15') {
+    if (promoCode.toUpperCase() === 'NEXOTA15') {
       setRedeemStatus('success');
       setTimeout(() => setRedeemStatus('idle'), 5000);
     } else {
@@ -162,7 +162,7 @@ const GamificationWidget: React.FC<GamificationWidgetProps> = ({ user, onDailyCl
                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight">
                     Reward Unlocked: 15% Discount Applied!
                   </p>
-                  <p className="text-[9px] text-emerald-500 mt-1">Use code <span className="font-black">NEXBUY15</span> at checkout.</p>
+                  <p className="text-[9px] text-emerald-500 mt-1">Use code <span className="font-black">NEXOTA15</span> at checkout.</p>
                 </div>
               )}
               {redeemStatus === 'error' && (

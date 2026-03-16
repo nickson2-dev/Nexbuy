@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, Mail, Lock, User as UserIcon, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { signIn, signUp, resetPassword } from '../services/firebase';
+import { signIn, signUp, resetPassword, signInWithGoogle } from '../services/firebase';
 import ButtonLoader from './ButtonLoader';
 
 interface LoginModalProps {
@@ -19,6 +19,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+      onClose();
+    } catch (err: any) {
+      setError(err.message || "Google Sign-In failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +83,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             <X size={24} />
           </div>
           <div className="flex items-center gap-3">
-             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl italic text-white">NB</div>
-             <span className="text-3xl font-black tracking-tighter text-white uppercase">NEXBUY</span>
+             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl italic text-white">NX</div>
+             <span className="text-3xl font-black tracking-tighter text-white uppercase">NEXOTA</span>
           </div>
         </div>
 
@@ -165,11 +178,31 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             </button>
           </form>
 
+          <div className="mt-6">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-100"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Or continue with</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 h-14 bg-white border border-slate-100 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50"
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+              <span>Sign in with Google</span>
+            </button>
+          </div>
+
           <button 
             onClick={() => { setIsRegister(!isRegister); setError(null); }}
             className="w-full mt-8 text-indigo-600 font-bold hover:underline transition-all text-sm"
           >
-            {isRegister ? 'Already have an account? Sign In' : 'New to Nexbuy? Create account'}
+            {isRegister ? 'Already have an account? Sign In' : 'New to Nexota? Create account'}
           </button>
 
           <div className="mt-8 flex items-center justify-center gap-2 text-slate-400">

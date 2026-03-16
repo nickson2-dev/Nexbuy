@@ -86,8 +86,21 @@ const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-20 lg:left-64 z-[150] bg-white/80 backdrop-blur-2xl border-b border-slate-100 transition-all duration-200">
-      <div className="max-w-[1600px] mx-auto flex items-center h-16 lg:h-20 px-4 lg:px-8 justify-between gap-6">
+    <header className="fixed top-0 right-0 left-0 md:left-20 lg:left-64 z-[150] transition-all duration-200">
+      {/* Global Market Stats Bar */}
+      <div className="h-8 bg-slate-900 text-white flex items-center px-4 lg:px-8 border-b border-white/5 overflow-hidden">
+        <div className="flex items-center gap-8 animate-marquee whitespace-nowrap text-[9px] font-black uppercase tracking-[0.2em]">
+          <span className="flex items-center gap-2"><span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span> Nexus Hub Online</span>
+          <span className="flex items-center gap-2 text-indigo-400">Market Cap: $1.2B <ChevronDown size={10} className="text-green-400 rotate-180" /></span>
+          <span className="flex items-center gap-2 text-amber-400">Lumi Index: 142.5 <ChevronDown size={10} className="text-green-400 rotate-180" /></span>
+          <span className="flex items-center gap-2 text-slate-400">Active Nodes: 12,402</span>
+          <span className="flex items-center gap-2 text-indigo-400">Market Cap: $1.2B <ChevronDown size={10} className="text-green-400 rotate-180" /></span>
+          <span className="flex items-center gap-2 text-amber-400">Lumi Index: 142.5 <ChevronDown size={10} className="text-green-400 rotate-180" /></span>
+        </div>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur-2xl border-b border-slate-100">
+        <div className="max-w-[1600px] mx-auto flex items-center h-16 lg:h-20 px-4 lg:px-8 justify-between gap-6">
         <div className="flex items-center gap-4">
           {currentView !== 'home' && (
             <button 
@@ -98,7 +111,7 @@ const Header: React.FC<HeaderProps> = ({
               <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
             </button>
           )}
-          <div onClick={onGoHome} className="cursor-pointer group shrink-0">
+          <div onClick={onGoHome} className={`cursor-pointer group shrink-0 ${user.isLoggedIn && user.role === 'admin' ? 'nexus-pulse rounded-full' : ''}`}>
             <Logo showText={false} />
           </div>
         </div>
@@ -346,8 +359,9 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
-    </header>
-  );
+    </div>
+  </header>
+);
 };
 
 export default Header;

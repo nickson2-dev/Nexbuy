@@ -72,7 +72,7 @@ export const signIn = async (email: string, pass: string) => {
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
-  localStorage.removeItem('nexbuy_session');
+  localStorage.removeItem('nexota_session');
 };
 
 // --- User Profile ---

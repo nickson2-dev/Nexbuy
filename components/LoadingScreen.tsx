@@ -27,7 +27,7 @@ const LoadingScreen: React.FC = () => {
         {/* Textual Feedback */}
         <div className="text-center space-y-2">
           <h2 className="text-white font-black text-xl uppercase tracking-[0.3em] italic animate-pulse">
-            Nexbuy <span className="text-indigo-400">OS</span>
+            Nexota <span className="text-indigo-400">OS</span>
           </h2>
           <div className="flex items-center gap-2 justify-center">
             <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>

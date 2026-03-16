@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Minus, Plus, ShoppingBag, Truck, ShieldCheck, CheckCircle2, ChevronRight, AlertCircle, MapPin, Phone, Home, Globe } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Truck, ShieldCheck, CheckCircle2, ChevronRight, AlertCircle, MapPin, Phone, Home, Globe, Crown } from 'lucide-react';
 import { CartItem, User, ShippingAddress } from '../types';
 import { createOrder, fetchShippingRates } from '../services/firebase';
 import { useCurrency } from '../src/context/CurrencyContext';
@@ -40,6 +40,8 @@ const CartModal: React.FC<CartModalProps> = ({
     phone: ''
   });
   const [isLocating, setIsLocating] = useState(false);
+  const [isWhiteGlove, setIsWhiteGlove] = useState(false);
+  const [isPremiumPackaging, setIsPremiumPackaging] = useState(false);
 
   useEffect(() => {
     const loadRates = async () => {
@@ -67,7 +69,9 @@ const CartModal: React.FC<CartModalProps> = ({
 
   if (!isOpen) return null;
 
-  const finalTotal = total + shippingCost;
+  const whiteGloveFee = isWhiteGlove ? 25 : 0;
+  const premiumPackagingFee = isPremiumPackaging ? 15 : 0;
+  const finalTotal = total + shippingCost + whiteGloveFee + premiumPackagingFee;
 
   const handleGetLocation = () => {
     setIsLocating(true);
@@ -195,9 +199,45 @@ const CartModal: React.FC<CartModalProps> = ({
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Service Upgrades</h4>
+                
+                <button 
+                  onClick={() => setIsWhiteGlove(!isWhiteGlove)}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all border ${isWhiteGlove ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-600'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isWhiteGlove ? 'bg-white/20' : 'bg-slate-100'}`}>
+                      <ShieldCheck size={16} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold">White Glove Delivery</p>
+                      <p className={`text-[9px] ${isWhiteGlove ? 'text-indigo-100' : 'text-slate-400'} font-medium`}>In-home setup & inspection</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black">+$25</span>
+                </button>
+
+                <button 
+                  onClick={() => setIsPremiumPackaging(!isPremiumPackaging)}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all border ${isPremiumPackaging ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-600'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPremiumPackaging ? 'bg-white/20' : 'bg-slate-100'}`}>
+                      <Crown size={16} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold">Premium Packaging</p>
+                      <p className={`text-[9px] ${isPremiumPackaging ? 'text-slate-300' : 'text-slate-400'} font-medium`}>Reinforced carbon-fiber box</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black">+$15</span>
+                </button>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                       <CheckCircle2 size={18} />
@@ -390,9 +430,27 @@ const CartModal: React.FC<CartModalProps> = ({
                 <span>Subtotal</span>
                 <span className="font-bold text-slate-900">{formatPrice(total)}</span>
               </div>
+              {shippingCost > 0 && (
+                <div className="flex justify-between text-slate-500 text-sm">
+                  <span>Shipping</span>
+                  <span className="font-bold text-slate-900">{formatPrice(shippingCost)}</span>
+                </div>
+              )}
+              {isWhiteGlove && (
+                <div className="flex justify-between text-slate-500 text-sm">
+                  <span>White Glove Delivery</span>
+                  <span className="font-bold text-indigo-600">{formatPrice(whiteGloveFee)}</span>
+                </div>
+              )}
+              {isPremiumPackaging && (
+                <div className="flex justify-between text-slate-500 text-sm">
+                  <span>Premium Packaging</span>
+                  <span className="font-bold text-slate-900">{formatPrice(premiumPackagingFee)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-2xl font-black text-slate-900 pt-3 mt-3 border-t border-slate-200">
                 <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(finalTotal)}</span>
               </div>
             </div>
             

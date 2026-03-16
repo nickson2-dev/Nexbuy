@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://nexbuy-the-future-of-retail-179188862954.us-west1.run.app/sitemap.xml
+Sitemap: https://nexota-the-future-of-retail.run.app/sitemap.xml

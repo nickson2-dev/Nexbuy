@@ -38,9 +38,9 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
 
       <header className="relative z-10 flex items-center justify-between p-4 md:p-8 border-b border-white/10 backdrop-blur-md">
         <div className="flex items-center gap-3 md:gap-6">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-xl flex items-center justify-center font-black italic shadow-[0_0_30px_rgba(79,70,229,0.5)] text-sm md:text-base">NB</div>
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-xl flex items-center justify-center font-black italic shadow-[0_0_30px_rgba(79,70,229,0.5)] text-sm md:text-base">NX</div>
           <div>
-            <h2 className="text-sm md:text-xl font-black tracking-tighter uppercase italic">Nexbuy Research Labs</h2>
+            <h2 className="text-sm md:text-xl font-black tracking-tighter uppercase italic">Nexota Research Labs</h2>
             <p className="text-[8px] md:text-[10px] text-indigo-400 font-bold tracking-[0.3em] uppercase">Core Simulation Protocol v2.5</p>
           </div>
         </div>
@@ -62,7 +62,7 @@ const ExperienceCenter: React.FC<ExperienceCenterProps> = ({ products, onAddToCa
             
             <div className="space-y-2">
               <p className="text-indigo-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2 md:mb-4 flex items-center gap-2">
-                <Target size={14} /> Subject Identification: NEX-{current.id.toUpperCase()}
+                <Target size={14} /> Subject Identification: NX-{current.id.toUpperCase()}
               </p>
               <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">
                 {current.name}

@@ -28,14 +28,14 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>(() => {
-    const saved = localStorage.getItem('nexbuy_currency');
+    const saved = localStorage.getItem('nexota_currency');
     return (saved as CurrencyCode) || 'UGX';
   });
 
   const currency = CURRENCIES[currencyCode];
 
   useEffect(() => {
-    localStorage.setItem('nexbuy_currency', currencyCode);
+    localStorage.setItem('nexota_currency', currencyCode);
   }, [currencyCode]);
 
   const setCurrency = (code: CurrencyCode) => {

@@ -47,7 +47,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, isAdmin, onNavigate, on
           <UserIcon size={40} />
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase italic">Session Restricted</h2>
-        <p className="text-slate-500 mb-10 max-w-sm font-medium">Please authenticate to access your personal Nexbuy interface.</p>
+        <p className="text-slate-500 mb-10 max-w-sm font-medium">Please authenticate to access your personal Nexota interface.</p>
         <button onClick={() => onNavigate('home')} className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl">Return to Hub</button>
       </div>
     );
