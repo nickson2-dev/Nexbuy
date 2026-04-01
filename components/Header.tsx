@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ShoppingCart, LogOut, Heart, User as UserIcon, ArrowLeft, UserCircle, Settings, ShieldCheck, Crown, ChevronDown, Package, Zap, Globe } from 'lucide-react';
+import { Search, ShoppingCart, LogOut, Heart, User as UserIcon, ArrowLeft, UserCircle, Settings, ShieldCheck, Crown, ChevronDown, Package, Zap, Globe, Menu } from 'lucide-react';
 import { User, Product } from '../types';
 import Logo from './Logo';
 import { useCurrency, CURRENCIES, CurrencyCode } from '../src/context/CurrencyContext';
@@ -18,6 +18,7 @@ interface HeaderProps {
   onGoHome: () => void;
   onBack?: () => void;
   onOpenAccount: () => void;
+  onOpenMobileSidebar: () => void;
   user: User;
   onLogout: () => void;
   searchQuery: string;
@@ -38,6 +39,7 @@ const Header: React.FC<HeaderProps> = ({
   onGoHome, 
   onBack,
   onOpenAccount,
+  onOpenMobileSidebar,
   user, 
   onLogout,
   searchQuery,
@@ -102,6 +104,13 @@ const Header: React.FC<HeaderProps> = ({
       <div className="bg-white/80 backdrop-blur-2xl border-b border-slate-100">
         <div className="max-w-[1600px] mx-auto flex items-center h-16 lg:h-20 px-4 lg:px-8 justify-between gap-6">
         <div className="flex items-center gap-4">
+          <button 
+            onClick={onOpenMobileSidebar}
+            className="md:hidden p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all active:scale-90 flex items-center justify-center group"
+            aria-label="Open Menu"
+          >
+            <Menu size={20} className="group-hover:scale-110 transition-transform" />
+          </button>
           {currentView !== 'home' && (
             <button 
               onClick={onBack || onGoHome}

@@ -19,7 +19,7 @@ interface SellerPortalProps {
 
 const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUser }) => {
   const { formatPrice } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'orders'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'orders' | 'settings'>('dashboard');
   const [isApplying, setIsApplying] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -27,9 +27,11 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const [appStoreName, setAppStoreName] = useState('');
-  const [appStoreDesc, setAppStoreDesc] = useState('');
+  const [appStoreName, setAppStoreName] = useState(user.storeName || '');
+  const [appStoreDesc, setAppStoreDesc] = useState(user.storeDescription || '');
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id' | 'sellerId'>>({
     name: '', price: 0, costPrice: 0, category: 'Electronics', sector: 'tech', image: '', rating: 5.0, description: '', stock: 10, specs: {}, xpGain: 100
@@ -38,6 +40,61 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
   const [specKey, setSpecKey] = useState('');
   const [specValue, setSpecValue] = useState('');
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isSuggestingPrice, setIsSuggestingPrice] = useState(false);
+
+  const suggestPrice = async () => {
+    const cost = editingProduct ? editingProduct.costPrice : newProduct.costPrice;
+    const category = editingProduct ? editingProduct.category : newProduct.category;
+    const name = editingProduct ? editingProduct.name : newProduct.name;
+
+    if (!cost || !category || !name) {
+      alert("Please provide name, category, and cost price first.");
+      return;
+    }
+
+    setIsSuggestingPrice(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const result = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `As a pricing expert for Nexota (a high-end tech/art store), suggest a retail price for "${name}" (Category: ${category}) with a production cost of $${cost}. Consider a healthy margin (30-60%) but keep it competitive for a premium market. Return ONLY the numeric price value.`
+      });
+
+      const suggestedPrice = parseFloat(result.text.replace(/[^0-9.]/g, ''));
+      if (!isNaN(suggestedPrice)) {
+        if (editingProduct) {
+          setEditingProduct({ ...editingProduct, price: suggestedPrice });
+        } else {
+          setNewProduct({ ...newProduct, price: suggestedPrice });
+        }
+      }
+    } catch (err) {
+      console.error("Price Suggestion Error:", err);
+    } finally {
+      setIsSuggestingPrice(false);
+    }
+  };
+
+  const handleUpdateSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdatingSettings(true);
+    setSuccess(null);
+    setError(null);
+    try {
+      // Re-using applyAsSeller logic as it updates store info
+      const ok = await applyAsSeller(user.id, appStoreName, appStoreDesc);
+      if (ok) {
+        setSuccess("Merchant profile synchronized successfully.");
+        await onRefreshUser();
+      } else {
+        setError("Failed to update merchant profile.");
+      }
+    } catch (err) {
+      setError("Sync error. Please check your connection.");
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  };
 
   const enhanceArtImage = async () => {
     const imageUrl = editingProduct ? editingProduct.image : newProduct.image;
@@ -162,12 +219,14 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
 
   const metrics = useMemo(() => {
     let rev = 0;
+    let profit = 0;
     const trend = new Array(12).fill(0).map(() => 10 + Math.floor(Math.random() * 80));
     orders.forEach(o => {
       const sellerItems = o.items.filter(i => i.sellerId === user.id);
       rev += sellerItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+      profit += sellerItems.reduce((s, i) => s + ((i.price - (i.costPrice || 0)) * i.quantity), 0);
     });
-    return { rev, trend };
+    return { rev, profit, trend };
   }, [orders, user.id]);
 
   const addSpec = () => {
@@ -304,11 +363,13 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
           <p className="text-slate-500 font-medium ml-16 mt-[-8px]">Operational dashboard for <span className="text-slate-900 font-black">"{user.storeName}"</span></p>
         </div>
 
-        <div className="flex bg-slate-100 p-1.5 rounded-[24px] border border-slate-200 shadow-inner">
-          {(['dashboard', 'inventory', 'orders'] as const).map(t => (
-            <button key={t} onClick={() => setActiveTab(t)} className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === t ? 'bg-white text-emerald-600 shadow-xl' : 'text-slate-500 hover:text-slate-900'}`}>{t}</button>
-          ))}
-          <button onClick={onClose} className="p-3 ml-2 text-slate-400 hover:text-red-500 transition-colors"><X size={20} /></button>
+        <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+          <div className="flex bg-slate-100 p-1.5 rounded-[24px] border border-slate-200 shadow-inner min-w-max lg:min-w-0">
+            {(['dashboard', 'inventory', 'orders', 'settings'] as const).map(t => (
+              <button key={t} onClick={() => setActiveTab(t)} className={`px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === t ? 'bg-white text-emerald-600 shadow-xl' : 'text-slate-500 hover:text-slate-900'}`}>{t}</button>
+            ))}
+            <button onClick={onClose} className="p-3 ml-2 text-slate-400 hover:text-red-500 transition-colors shrink-0"><X size={20} /></button>
+          </div>
         </div>
       </div>
 
@@ -317,6 +378,14 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
           <ShieldAlert size={24} />
           <p className="text-sm font-bold uppercase tracking-widest">{error}</p>
           <button onClick={loadSellerData} className="ml-auto px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Retry Sync</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-8 p-6 bg-emerald-50 border border-emerald-100 rounded-[32px] flex items-center gap-4 text-emerald-600 animate-slide-up">
+          <CheckCircle2 size={24} />
+          <p className="text-sm font-bold uppercase tracking-widest">{success}</p>
+          <button onClick={() => setSuccess(null)} className="ml-auto text-emerald-400 hover:text-emerald-600"><X size={20} /></button>
         </div>
       )}
 
@@ -330,10 +399,19 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                 <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all">
                   <div className="flex justify-between items-start mb-6">
                     <div className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl group-hover:scale-110 transition-transform"><DollarSign size={24} /></div>
-                    <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest">Live</div>
+                    <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest">Revenue</div>
                   </div>
                   <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Yield</h4>
                   <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(metrics.rev)}</p>
+                </div>
+
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-3xl group-hover:scale-110 transition-transform"><Zap size={24} /></div>
+                    <div className="flex items-center gap-1 text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest">Profit</div>
+                  </div>
+                  <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Net Margin</h4>
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter italic">{formatPrice(metrics.profit)}</p>
                 </div>
                 
                 <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
@@ -531,10 +609,38 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                           <td className="px-10 py-8">
                              <div className="flex items-center gap-2">
                                <span className={`w-2 h-2 rounded-full ${p.stock < 5 ? 'bg-orange-500 animate-pulse' : 'bg-emerald-500'}`}></span>
-                               <span className="font-black text-slate-900 tabular-nums">{p.stock} Units</span>
+                               <input 
+                                 type="number" 
+                                 value={p.stock} 
+                                 onChange={async (e) => {
+                                   const newStock = parseInt(e.target.value);
+                                   if (!isNaN(newStock)) {
+                                     await updateSellerProduct(p.id, { ...p, stock: newStock });
+                                     setProducts(prev => prev.map(item => item.id === p.id ? { ...item, stock: newStock } : item));
+                                   }
+                                 }}
+                                 className="w-20 bg-transparent font-black text-slate-900 tabular-nums border-b border-transparent hover:border-slate-200 focus:border-indigo-500 outline-none transition-all"
+                               />
+                               <span className="text-[10px] font-bold text-slate-400 uppercase">Units</span>
                              </div>
                           </td>
-                          <td className="px-10 py-8 font-black text-lg tracking-tighter tabular-nums text-slate-900">{formatPrice(p.price)}</td>
+                          <td className="px-10 py-8 font-black text-lg tracking-tighter tabular-nums text-slate-900">
+                            <div className="flex items-center gap-1">
+                              <span className="text-slate-400 text-sm">$</span>
+                              <input 
+                                type="number" 
+                                value={p.price} 
+                                onChange={async (e) => {
+                                  const newPrice = parseFloat(e.target.value);
+                                  if (!isNaN(newPrice)) {
+                                    await updateSellerProduct(p.id, { ...p, price: newPrice });
+                                    setProducts(prev => prev.map(item => item.id === p.id ? { ...item, price: newPrice } : item));
+                                  }
+                                }}
+                                className="w-24 bg-transparent font-black text-slate-900 tabular-nums border-b border-transparent hover:border-slate-200 focus:border-indigo-500 outline-none transition-all"
+                              />
+                            </div>
+                          </td>
                           <td className="px-10 py-8 text-right space-x-2">
                             <button onClick={() => setEditingProduct(p)} className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 hover:border-emerald-100 rounded-xl transition-all shadow-sm">
                                <Edit3 size={18} />
@@ -625,6 +731,68 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                </div>
             </div>
           )}
+
+          {activeTab === 'settings' && (
+            <div className="max-w-4xl mx-auto space-y-10 animate-slide-up">
+              <div className="bg-white p-12 rounded-[56px] border border-slate-100 shadow-sm space-y-10">
+                <div>
+                  <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-2">Merchant Profile</h3>
+                  <p className="text-slate-500 font-medium">Update your store's identity and narrative in the Nexota ecosystem.</p>
+                </div>
+
+                <form onSubmit={handleUpdateSettings} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Store Name</label>
+                      <input 
+                        type="text" 
+                        value={appStoreName} 
+                        onChange={e => setAppStoreName(e.target.value)} 
+                        className="w-full bg-slate-50 p-6 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold" 
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Merchant Tier</label>
+                      <div className="w-full bg-slate-100 p-6 rounded-2xl font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <ShieldCheck size={18} className="text-indigo-400" />
+                        {user.sellerBadge || 'Standard'} Tier
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Store Narrative</label>
+                    <textarea 
+                      value={appStoreDesc} 
+                      onChange={e => setAppStoreDesc(e.target.value)} 
+                      className="w-full bg-slate-50 p-6 rounded-2xl outline-none h-40 focus:ring-2 focus:ring-indigo-500 transition-all font-medium leading-relaxed" 
+                      placeholder="Your store's vision and mission..."
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isUpdatingSettings}
+                    className="w-full bg-slate-900 text-white h-20 rounded-[32px] font-black uppercase text-lg shadow-2xl hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    {isUpdatingSettings ? <ButtonLoader /> : 'Synchronize Profile'}
+                  </button>
+                </form>
+              </div>
+
+              <div className="bg-slate-900 p-10 rounded-[48px] text-white flex items-center justify-between">
+                <div>
+                  <h4 className="text-xl font-black uppercase italic tracking-tighter mb-1">Merchant Credentials</h4>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Global ID: {user.id}</p>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                  <Activity size={14} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Active Status</span>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -672,8 +840,19 @@ const SellerPortal: React.FC<SellerPortalProps> = ({ user, onClose, onRefreshUse
                  </select>
               </div>
 
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Market Price ($)</label>
+              <div className="space-y-2 relative">
+                 <div className="flex justify-between items-center ml-1">
+                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Market Price ($)</label>
+                   <button
+                     type="button"
+                     onClick={suggestPrice}
+                     disabled={isSuggestingPrice}
+                     className="text-[10px] font-black uppercase text-indigo-600 tracking-widest hover:text-indigo-800 transition-all flex items-center gap-1"
+                   >
+                     {isSuggestingPrice ? <Activity size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                     AI Suggest
+                   </button>
+                 </div>
                  <input 
                     type="number" 
                     placeholder="0.00" 

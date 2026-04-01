@@ -5,13 +5,12 @@ import ProductGrid from './components/ProductGrid';
 import Sidebar from './components/Sidebar';
 import MobileNavbar from './components/MobileNavbar';
 import MobileSidebar from './components/MobileSidebar';
-import LoadingScreen from './components/LoadingScreen';
+import WishlistPage from './components/WishlistPage';
+import ProductPage from './components/ProductPage';
+import SettingsPage from './components/SettingsPage';
+import AccountPage from './components/AccountPage';
 
-// Lazy load non-critical components
-const WishlistPage = lazy(() => import('./components/WishlistPage'));
-const ProductPage = lazy(() => import('./components/ProductPage'));
-const SettingsPage = lazy(() => import('./components/SettingsPage'));
-const AccountPage = lazy(() => import('./components/AccountPage'));
+// Lazy load heavy or non-critical components
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 const SellerPortal = lazy(() => import('./components/SellerPortal'));
 const ExperienceCenter = lazy(() => import('./components/ExperienceCenter'));
@@ -45,7 +44,6 @@ const App: React.FC = () => {
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [cartPulse, setCartPulse] = useState(false);
   const [addedToCartToast, setAddedToCartToast] = useState({ name: '', show: false });
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
@@ -80,7 +78,6 @@ const App: React.FC = () => {
       } else {
         setUser({ id: '', email: '', name: 'Guest', points: 0, level: 1, streak: 0, isLoggedIn: false, role: 'customer', isLumiAscend: false });
       }
-      setLoading(false);
     });
     const unsubscribeNotify = listenToNotifications(() => {});
     return () => {
@@ -122,8 +119,8 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { if (!loading) localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist, loading]);
-  useEffect(() => { if (!loading) localStorage.setItem('cart', JSON.stringify(cart)); }, [cart, loading]);
+  useEffect(() => { if (wishlist.length > 0) localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
+  useEffect(() => { if (cart.length > 0) localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
 
   const handlePointsUpdate = useCallback(async (points: number) => {
     if (!user.isLoggedIn) return;
@@ -186,19 +183,19 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const viewTitles: Record<string, string> = {
-      home: 'Nexota | The Future of Tech Curation',
-      wishlist: 'My Wishlist | Nexota',
-      account: 'My Account | Nexota',
+      home: 'Nexota Store | Online Store in Uganda | Premium Tech',
+      wishlist: 'My Wishlist | Nexota Store',
+      account: 'My Account | Nexota Store',
       seller: 'Seller Portal | Nexota Hub',
       admin: 'Nexus Command | Admin Control',
       experience: 'Nexota Labs | Future Tech Experience',
       art: 'Art Sector | Professional Showcase x Nexota',
-      settings: 'Settings | Nexota'
+      settings: 'Settings | Nexota Store'
     };
     
     const viewDescriptions: Record<string, string> = {
-      home: 'Discover Nexota, the premier destination for curated high-tech gadgets and premium gear.',
-      wishlist: 'View and manage your saved premium tech gadgets at Nexota.',
+      home: 'Nexota is the premier online store in Uganda, offering curated high-tech gadgets and premium gear for the elite tech enthusiast.',
+      wishlist: 'View and manage your saved premium tech gadgets at Nexota Store.',
       account: 'Manage your Nexota profile, points, and citizen status.',
       seller: 'Access the Nexota Seller Portal to manage your premium tech inventory.',
       admin: 'Nexus Command Center for global ecosystem governance.',
@@ -216,45 +213,9 @@ const App: React.FC = () => {
     }
   }, [currentView]);
 
-  useEffect(() => {
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
-      
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-
-      // Swipe from left to right: deltaX > 100, and touchStartX was near the left edge
-      // Also ensure it's mostly horizontal (deltaX > abs(deltaY))
-      if (touchStartX < 50 && deltaX > 100 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        setIsMobileSidebarOpen(true);
-      }
-    };
-
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, []);
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-[#fafafa] overflow-x-hidden">
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense fallback={<div className="fixed top-0 left-0 w-full h-0.5 bg-indigo-600/50 z-[1000]" />}>
         <div className="flex flex-grow w-full overflow-x-hidden">
         <Sidebar 
           currentView={currentView} 
@@ -279,6 +240,7 @@ const App: React.FC = () => {
             onGoHome={() => handleNavigation('home')} 
             onBack={handleBack}
             onOpenAccount={() => handleNavigation('account')} 
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
             user={user} 
             onLogout={() => { signOut(); handleNavigation('home'); }} 
             searchQuery={searchQuery} 
@@ -352,11 +314,16 @@ const App: React.FC = () => {
         </div>
       </div>
       
-      <MobileNavbar currentView={currentView} onNavigate={handleNavigation} onOpenCart={() => setIsCartOpen(true)} onOpenSearch={() => { handleNavigation('home'); setIsSearchOpen(true); }} cartCount={cart.reduce((s, i) => s + i.quantity, 0)} user={user} />
+      <MobileNavbar 
+        currentView={currentView} 
+        onNavigate={handleNavigation} 
+        onOpenCart={() => setIsCartOpen(true)} 
+        onOpenSearch={() => { handleNavigation('home'); setIsSearchOpen(true); }} 
+        onOpenMenu={() => setIsMobileSidebarOpen(true)}
+        cartCount={cart.reduce((s, i) => s + i.quantity, 0)} 
+        user={user} 
+      />
       
-      {/* Mobile Swipe Handle Indicator */}
-      <div className="md:hidden fixed left-0 top-1/2 -translate-y-1/2 w-1.5 h-16 bg-slate-200/50 rounded-r-full z-[200] pointer-events-none" />
-
       <MobileSidebar 
         isOpen={isMobileSidebarOpen} 
         onClose={() => setIsMobileSidebarOpen(false)} 

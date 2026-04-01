@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Product, User } from '../types';
-import { Palette, Zap, Star, Plus, X, MessageSquare, Share2, Eye, TrendingUp, Info, Activity, Grid, Layout, Sparkles, ArrowUpRight } from 'lucide-react';
+import { Palette, Zap, Star, Plus, X, MessageSquare, Share2, Eye, TrendingUp, Info, Activity, Grid, Layout, Sparkles, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ArtSectorProps {
@@ -38,14 +38,14 @@ const ArtSector: React.FC<ArtSectorProps> = ({ products, user, onAddToCart, onCl
       {/* Header */}
       <header className="sticky top-0 z-[210] bg-white/80 backdrop-blur-2xl border-b border-slate-200 px-6 py-6 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-900 text-white rounded-2xl cursor-pointer hover:scale-110 transition-transform shadow-lg" onClick={onClose}>
-            <Palette size={28} />
+          <div className="p-3 bg-indigo-600 text-white rounded-2xl cursor-pointer hover:scale-110 transition-transform shadow-lg shadow-indigo-200" onClick={onClose}>
+            <Sparkles size={28} />
           </div>
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
-              Art <span className="text-indigo-600">Showcase</span>
+              Digital <span className="text-indigo-600">Art</span>
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Curated Professional Gallery</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Curated Professional Gallery</p>
           </div>
         </div>
 
@@ -127,10 +127,13 @@ const ArtSector: React.FC<ArtSectorProps> = ({ products, user, onAddToCart, onCl
                   alt={art.name} 
                   className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" 
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="bg-white text-slate-900 px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2 shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                    View Details <ArrowUpRight size={16} />
+                <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/40 transition-colors duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <div className="bg-white text-slate-900 px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all">
+                    Inspect Asset <ArrowUpRight size={16} />
                   </div>
+                </div>
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
+                  Verified Digital
                 </div>
               </div>
 
@@ -261,7 +264,7 @@ const ArtSector: React.FC<ArtSectorProps> = ({ products, user, onAddToCart, onCl
                       <MessageSquare size={18} /> Contact Artist
                     </button>
                     <button className="flex-grow border border-slate-200 h-16 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                      <Info size={18} /> Provenance
+                      <ShieldCheck size={18} /> Digital Certificate
                     </button>
                   </div>
                 </div>

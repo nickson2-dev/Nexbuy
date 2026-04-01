@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Minus, Plus, ShoppingBag, Truck, ShieldCheck, CheckCircle2, ChevronRight, AlertCircle, MapPin, Phone, Home, Globe, Crown } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Truck, ShieldCheck, CheckCircle2, ChevronRight, AlertCircle, MapPin, Phone, Home, Globe, Crown, DollarSign } from 'lucide-react';
 import { CartItem, User, ShippingAddress } from '../types';
 import { createOrder, fetchShippingRates } from '../services/firebase';
 import { useCurrency } from '../src/context/CurrencyContext';
@@ -349,7 +349,12 @@ const CartModal: React.FC<CartModalProps> = ({
                 <Truck size={40} />
               </div>
               <div className="space-y-4">
-                <h3 className="text-2xl font-black text-slate-900">Confirm COD Order</h3>
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-2xl font-black text-slate-900">Confirm Order</h3>
+                  <div className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase tracking-widest rounded-md border border-emerald-200">
+                    COD Verified
+                  </div>
+                </div>
                 <p className="text-slate-500 text-sm">You are about to place an order using <span className="font-bold text-slate-900">Cash on Delivery</span>. Our courier will collect the payment when the package arrives.</p>
               </div>
 
@@ -469,9 +474,16 @@ const CartModal: React.FC<CartModalProps> = ({
             </button>
 
             <div className="flex flex-col items-center gap-4 py-2">
-               <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                 <Truck size={14} className="text-indigo-500" />
-                 Global Logistics Network
+               <div className="flex items-center gap-4">
+                 <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                   <Truck size={14} className="text-indigo-500" />
+                   Global Logistics
+                 </div>
+                 <div className="w-px h-3 bg-slate-200"></div>
+                 <div className="flex items-center gap-2 text-[10px] text-emerald-600 font-bold uppercase tracking-widest">
+                   <DollarSign size={14} />
+                   Cash on Delivery
+                 </div>
                </div>
             </div>
           </div>

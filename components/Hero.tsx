@@ -24,6 +24,7 @@ const Hero: React.FC<HeroProps> = ({ onShopNow, onLaunchLabs, isLumiAscend, onOp
           muted 
           loop 
           playsInline
+          poster="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1920"
           className="w-full h-full object-cover opacity-40 contrast-125"
         >
           <source src="https://assets.mixkit.co/videos/preview/mixkit-circuit-board-details-moving-145-large.mp4" type="video/mp4" />
@@ -75,14 +76,14 @@ const Hero: React.FC<HeroProps> = ({ onShopNow, onLaunchLabs, isLumiAscend, onOp
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-xs">
             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2">The Standard</span>
             <p className="text-sm text-slate-400 font-medium leading-relaxed">
-              Engineered for the elite. Every unit is hand-selected and verified by the Nexus Governance.
+              Nexota Store: Engineered for the elite. Every unit is hand-selected and verified by the Nexus Governance.
             </p>
           </div>
           <div className="w-px h-12 bg-white/10 hidden md:block"></div>
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-xs">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2">Global Access</span>
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2">Uganda's Premier Store</span>
             <p className="text-sm text-slate-400 font-medium leading-relaxed">
-              Decentralized logistics ensuring 24h delivery to any major metropolitan hub.
+              The best online store in Uganda, offering a curated selection of premium high-tech gadgets and gear.
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, User as UserIcon, Globe, MapPin, Layers, 
   Tag, Settings, LogOut, ChevronRight, 
-  ShieldCheck, Briefcase, Languages, Zap, Palette
+  ShieldCheck, Briefcase, Languages, Zap, Palette, Sparkles
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -119,8 +119,8 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Tech</span>
                   </button>
                   <button onClick={() => { onNavigate('art'); onClose(); }} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-2 group hover:border-indigo-200 transition-all">
-                    <Palette size={16} className="text-indigo-600" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Art</span>
+                    <Sparkles size={16} className="text-indigo-600" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Digital Art</span>
                   </button>
                 </div>
               </section>

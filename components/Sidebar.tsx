@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Heart, Settings, User as UserIcon, LogOut, Store, ShieldCheck, FlaskConical, Palette } from 'lucide-react';
+import { Home, Heart, Settings, User as UserIcon, LogOut, Store, ShieldCheck, FlaskConical, Palette, Sparkles } from 'lucide-react';
 import { User } from '../types';
 import Logo from './Logo';
 
@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, user, isAdmi
 
       <nav className="flex-grow space-y-2 overflow-y-auto no-scrollbar">
         <NavItem icon={Home} label="Storefront" view="home" active={currentView === 'home'} />
-        <NavItem icon={Palette} label="Art Sector" view="art" active={currentView === 'art'} />
+        <NavItem icon={Sparkles} label="Digital Art" view="art" active={currentView === 'art'} />
         <NavItem icon={FlaskConical} label="Nexota Labs" view="experience" active={currentView === 'experience'} badge />
         <NavItem icon={Heart} label="Wishlist" view="wishlist" active={currentView === 'wishlist'} />
         

@@ -21,7 +21,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, onAddToCart, onToggl
     const prevTitle = document.title;
     const prevDesc = document.querySelector('meta[name="description"]')?.getAttribute('content');
     
-    document.title = `${product.name} | Nexota Premium Tech`;
+    document.title = `${product.name} | Nexota Store Uganda`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', product.description.slice(0, 160));
