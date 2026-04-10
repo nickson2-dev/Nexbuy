@@ -1,3 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /seller
+Disallow: /account
+Disallow: /wishlist
+
 Sitemap: https://nexota-the-future-of-retail.run.app/sitemap.xml
